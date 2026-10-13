@@ -69,6 +69,33 @@ open GeoDa
 #check @GeoDa.sdmDes_iff_mulVec
 #check @GeoDa.sdmDes_iff_reducedForm
 
+/-! ### Random vectors: signature pins -/
+
+#check @GeoDa.rvExp
+#check @GeoDa.rvCenter
+#check @GeoDa.rvCov
+#check @GeoDa.HasMoments
+#check @GeoDa.IsWhiteNoise
+#check @GeoDa.rvExp_const
+#check @GeoDa.integrable_mulVec
+#check @GeoDa.rvExp_mulVec
+#check @GeoDa.rvExp_affine
+#check @GeoDa.rvCenter_mulVec
+#check @GeoDa.integrable_center_mul
+#check @GeoDa.integral_double_sum_mul
+#check @GeoDa.sum_sum_mul_mul_eq
+#check @GeoDa.rvCov_mulVec
+#check @GeoDa.rvCenter_affine
+#check @GeoDa.rvCov_affine
+#check @GeoDa.HasMoments.mulVec
+#check @GeoDa.HasMoments.add_const
+#check @GeoDa.HasMoments.mulVec_add
+#check @GeoDa.affine_moments
+#check @GeoDa.linear_moments
+#check @GeoDa.sar_moments
+#check @GeoDa.sem_moments
+#check @GeoDa.gns_moments
+
 /-! ### Invertibility of the spatial multiplier: signature pins -/
 
 #check @GeoDa.abs_mulVec_apply_le_norm
@@ -407,5 +434,40 @@ theorem wneg_det_zero : (1 - (1/2 : ℝ) • Wneg).det = 0 := by
 theorem wneg_not_isUnit : ¬ IsUnit (1 - (1/2 : ℝ) • Wneg) := by
   rw [Matrix.isUnit_iff_isUnit_det, wneg_det_zero]
   exact not_isUnit_zero
+
+/-! ### Random vectors: the two-region SAR covariance -/
+
+section Prob
+
+open MeasureTheory
+
+variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
+
+/-- `WswapInv` is symmetric, so `WswapInv * WswapInvᵀ = !![20/9, 16/9; 16/9, 20/9]`. -/
+theorem wswapInv_mul_transpose :
+    WswapInv * WswapInvᵀ = !![20/9, 16/9; 16/9, 20/9] := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [WswapInv, Matrix.mul_apply, Matrix.transpose_apply, Fin.sum_univ_two] <;> norm_num
+
+/-- The SAR moments at `n = 2` with `W = Wswap`, `ρ = 1/2` and `σ² = 2`: the mean is
+`A xb` and the covariance is `2 • A Aᵀ`, computed in explicit rational form. -/
+example (ε : Ω → Vec 2) (hε : IsWhiteNoise μ ε 2) (xb : Vec 2) :
+    rvExp μ (fun ω => WswapInv *ᵥ (xb + ε ω)) = WswapInv *ᵥ xb ∧
+      rvCov μ (fun ω => WswapInv *ᵥ (xb + ε ω))
+        = (2 : ℝ) • (!![20/9, 16/9; 16/9, 20/9] : WMat 2) := by
+  rw [← wswapInv_mul_transpose]
+  exact sar_moments hε WswapInv xb
+
+/-- The SEM and GNS moments at `n = 2`. In SEM the outcome and the latent
+disturbance share a covariance; in GNS the lag multiplier is applied on top of the
+error multiplier, so `Cov(y) = σ² (AB)(AB)ᵀ`. -/
+example (ε : Ω → Vec 2) (hε : IsWhiteNoise μ ε 1) (xb γ : Vec 2) :
+    rvCov μ (fun ω => xb + WswapInv *ᵥ ε ω) = (1 : ℝ) • (WswapInv * WswapInvᵀ) ∧
+      rvCov μ (fun ω => WswapInv *ᵥ (γ + WswapInv *ᵥ ε ω))
+        = (1 : ℝ) • ((WswapInv * WswapInv) * (WswapInv * WswapInv)ᵀ) :=
+  ⟨(sem_moments hε WswapInv xb).2.2.2, (gns_moments hε WswapInv WswapInv γ).2.2.2⟩
+
+end Prob
 
 end GeoDaTest

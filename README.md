@@ -7,7 +7,7 @@ assumption, and the spatial weights predicates (nonnegativity, row
 standardization, islands) those models are stated over.
 
 **Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 63 main
+that no proof uses `sorry` or `admit`, and audits the axioms of all 82 main
 theorems (see [Verification](#verification) for the exact toolchain, command and
 observed output).
 
@@ -20,6 +20,7 @@ GeoDa/Weights.lean        concrete version: W is a real n×n matrix; reduced for
 GeoDa/Design.lean         design matrix X; Xβ and WXθ formed by matrix product
 GeoDa/ReducedForm.lean    the full GNS reduced form, eliminating u and y together
 GeoDa/Multiplier.lean     invertibility of 1 - ρW from the weights themselves
+GeoDa/RandomVector.lean   probability layer: expectation, covariance, model moments
 GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
 GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
@@ -244,11 +245,60 @@ Islands are *allowed*: the island matrix `Wisland` is covered by
 `isUnit_one_sub_smul_of_rowSubstochastic` precisely because the hypothesis is
 sub-stochasticity, not standardization.
 
+### Probability: randomness only in `ε` (`GeoDa.RandomVector`)
+
+Everything above is deterministic. This file starts the probability layer, and the
+separation is kept strict:
+
+* `Ω` is a measurable space with a probability measure `μ`;
+* a **random vector** is an ordinary function `ξ : Ω → Vec n`;
+* `X`, `W`, `β`, `θ`, `ρ`, `λ` stay deterministic — the *same* objects as
+  everywhere else in the repository, never random;
+* only `ε`, and the `u` and `y` built from it, are random.
+
+Expectation and covariance are defined coordinatewise,
+`(rvExp μ ξ) i = ∫ ω, ξ ω i ∂μ` and
+`(rvCov μ ξ) i j = ∫ ω, (ξ i - Eξ i)(ξ j - Eξ j) ∂μ`, which keeps every integral a
+real-valued Lebesgue integral: no Bochner integral in a normed space, no
+`ContinuousLinearMap` commutation, no matrix norm.
+
+**Integrability is assumed, never implied.** `rvExp_mulVec` assumes each coordinate
+of `ξ` is integrable; `rvCov_mulVec` assumes in addition that each product of two
+coordinates is. Both are bundled as `HasMoments`, and no measurability hypothesis
+is hidden behind `Integrable`.
+
+* `rvExp_mulVec` : `E[Aξ] = A E[ξ]`.
+* `rvExp_affine` : `E[Aξ + b] = A E[ξ] + b`.
+* `rvCov_mulVec` : **`Cov(Aξ) = A Cov(ξ) Aᵀ`**, with the summed index in the
+  middle, `(A Cov(ξ) Aᵀ) i j = ∑ k ∑ l, A i k Cov(ξ) k l A j l`. No symmetry of
+  `Cov(ξ)` is used — the *transpose* is what carries the second index.
+* `rvCov_affine` : `Cov(Aξ + b) = A Cov(ξ) Aᵀ` — a constant shifts the mean and
+  leaves the covariance alone.
+
+`IsWhiteNoise μ ε σ²` is exactly "`ε` has mean `0` and covariance `σ²I`", i.e. a
+first- and a second-moment condition and nothing more. On top of it, `GeoDa.Multiplier`'s
+invertibility and the reduced forms of `GeoDa.ReducedForm` give the model moments:
+
+* `sar_moments` : for `y = (1 - ρW)⁻¹ (Xβ + ε)`, `E[y] = (1 - ρW)⁻¹ Xβ` and
+  `Cov(y) = σ² A Aᵀ`. The lag puts `A` on *both* sides.
+* `sem_moments` : for `u = (1 - λW)⁻¹ ε` and `y = Xβ + u`, `Cov(y) = Cov(u) =
+  σ² B Bᵀ`; the regressors contribute nothing.
+* `gns_moments` : for `u = Bε` and `y = A(γ + Bε)` with `γ := Xβ + WXθ`,
+  `Cov(u) = σ² B Bᵀ` and `Cov(y) = σ² (AB)(AB)ᵀ`.
+* `affine_moments`, `linear_moments` : the underlying computation, `E[Aε + c] = c`
+  and `Cov(Aε + c) = σ² A Aᵀ`.
+
+**No distributional claim.** `IsWhiteNoise` is a moment condition; no shape is
+assumed and in particular **no Gaussianity**. A multivariate normal innovation, and
+a likelihood built on it, would be strictly stronger and are not formalized here —
+see the [next steps](#next-steps).
+
 ## Scope and non-claims
 
-This is a formalization of *model equations*. It does **not** establish
-identifiability, estimator consistency, asymptotic distribution theory, or
-numerical correctness. It makes no novelty claim about the mathematics: the
+This is a formalization of *model equations*, plus the first two moments of the
+resulting random variables. It does **not** establish identifiability, estimator
+consistency, asymptotic distribution theory, or numerical correctness, and it
+assumes no distributional shape for the innovations. It makes no novelty claim about the mathematics: the
 nesting results are textbook (Anselin), the reduced-form statements are matrix
 algebra, and the weights predicates are elementary.
 
@@ -269,10 +319,12 @@ where both terms are formed as actual matrix products.
 ## Import policy
 
 The project imports the specific Mathlib modules it needs rather than the whole
-of Mathlib. `GeoDa/Multiplier.lean` is the one file that reaches into `Analysis`
-(`Mathlib.Analysis.Normed.Group.Constructions` for the `ℓ∞` norm on `Fin n → ℝ`
-and `Mathlib.Analysis.Normed.Module.Basic` for `norm_smul`); everything else
-stays in algebra. This keeps builds fast and the CI cache small; `import Mathlib` would
+of Mathlib. Two files reach outside algebra: `GeoDa/Multiplier.lean` imports
+`Mathlib.Analysis.Normed.Group.Constructions` for the `ℓ∞` norm on `Fin n → ℝ` and
+`Mathlib.Analysis.Normed.Module.Basic` for `norm_smul`, and `GeoDa/RandomVector.lean`
+imports `Mathlib.MeasureTheory.Integral.Bochner.Basic` and
+`Mathlib.MeasureTheory.Measure.Typeclasses.Probability` for the integral and the
+probability-measure class. Everything else stays in algebra. This keeps builds fast and the CI cache small; `import Mathlib` would
 pull in all ~8600 Mathlib modules. Note `*ᵥ` is a *scoped* notation, so files
 using it need `open scoped Matrix` (and `open Matrix` for the lemma names).
 
@@ -285,13 +337,13 @@ and `lake-manifest.json`.
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
-Build completed successfully (2099 jobs).
+Build completed successfully (2623 jobs).
 ==> 2/3  no sorry / admit
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
 … (56 theorems, all on the same list)
-     ok: all 63 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 82 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```
@@ -338,6 +390,10 @@ independently and the two versions compared.
    `isUnit_iff_det_ne_zero`), and `GeoDa.Multiplier` derives the hypothesis from
    the weights for SAR and SEM; the theorems in `GeoDa.Weights` and
    `GeoDa.Design` that take `IsUnit` directly are unchanged.
-2. Numerical cross-checks against PySAL `spreg`, now that `Xβ` and `WXθ` are
+2. **A multivariate normal innovation, and a likelihood built on it.** This is
+   the stretch goal of the probability layer and is strictly stronger than
+   `IsWhiteNoise`: it fixes a distribution, not two moments. Keep it a separate
+   claim.
+3. Numerical cross-checks against PySAL `spreg`, now that `Xβ` and `WXθ` are
    explicit matrix products, the reduced form covers GNS itself, and the
    invertibility hypothesis is discharged from `|ρ| < 1` and the weights.

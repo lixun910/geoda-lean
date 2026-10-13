@@ -84,3 +84,24 @@ user-introduced axiom.
 #print axioms GeoDa.isUnit_one_sub_smul_of_rowStochastic
 #print axioms GeoDa.sarMat_iff_reducedForm_of_rowSubstochastic
 #print axioms GeoDa.semMat_iff_reducedForm_of_rowSubstochastic
+
+-- GeoDa.RandomVector: expectation, covariance and the model moments
+#print axioms GeoDa.rvExp_const
+#print axioms GeoDa.integrable_mulVec
+#print axioms GeoDa.rvExp_mulVec
+#print axioms GeoDa.rvExp_affine
+#print axioms GeoDa.rvCenter_mulVec
+#print axioms GeoDa.integrable_center_mul
+#print axioms GeoDa.integral_double_sum_mul
+#print axioms GeoDa.sum_sum_mul_mul_eq
+#print axioms GeoDa.rvCov_mulVec
+#print axioms GeoDa.rvCenter_affine
+#print axioms GeoDa.rvCov_affine
+#print axioms GeoDa.HasMoments.mulVec
+#print axioms GeoDa.HasMoments.add_const
+#print axioms GeoDa.HasMoments.mulVec_add
+#print axioms GeoDa.affine_moments
+#print axioms GeoDa.linear_moments
+#print axioms GeoDa.sar_moments
+#print axioms GeoDa.sem_moments
+#print axioms GeoDa.gns_moments
