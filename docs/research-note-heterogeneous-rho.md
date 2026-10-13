@@ -98,10 +98,10 @@ identification strategy, and nothing here is offered as one.
 
 The novelty claim is deliberately minimal and is about *verification*, not about
 mathematics: these statements are checked by a kernel, and they are the first place in this
-repository where a parameter's identifiability is a theorem rather than a remark. Whether
+repository with a theorem about recovery from a full reduced-form map. Whether
 that is worth anything to anyone else is for others to judge.
 
-## 4. The identification condition
+## 4. Algebraic parameter recovery (not statistical identifiability)
 
 **Claim.** `ρ i` is determined by the reduced form if and only if row `i` of `W` is not an
 island.

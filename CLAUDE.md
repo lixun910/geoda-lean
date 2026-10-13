@@ -4,7 +4,9 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 115 theorems.
+**Status:** baseline `eb53ae6` records 115 verified audit entries. The Paper 1
+revision has 117 entries; full verification of its two additions is pending.
+See `paper/verification.md`; expected output below is not an observed new run.
 
 ## Layout
 
@@ -20,11 +22,11 @@ GeoDa/Multiplier.lean  |ρ| < 1 ⇒ IsUnit (1 - ρ • W) from Nonneg + RowSubst
 GeoDa/RandomVector.lean  probability layer: rvExp, rvCov, IsWhiteNoise, model moments
 GeoDa/DSL.lean         `spatial_model`: generate a model's `def` from its equation
 GeoDa/Nesting.lean     SLX, and GNS with both spatial coefficients off
-GeoDa/HeteroRho.lean   the heterogeneous-ρ model: reduced form and identifiability
+GeoDa/HeteroRho.lean   the heterogeneous-ρ model: reduced form and algebraic parameter recovery
 GeoDa/Sdem.lean        the spatial Durbin error model (the P4.2 benchmark model)
 GeoDaTest/DSL.lean     DSL tests: rfl-equivalence to the hand-written specs, rejections
 GeoDaTest/AgentTasks.lean  the agent-loop benchmark's refuted conjectures
-GeoDaTest/HeteroRho.lean    heterogeneous-ρ tests: both directions of identifiability
+GeoDaTest/HeteroRho.lean    heterogeneous-ρ tests: map injectivity and island invariance
 GeoDaTest/Sdem.lean         SDEM tests: nestings, reduced form, DSL equivalence
 AGENTS.md              the agent protocol; points at this file rather than copying it
 docs/agent-tasks.md    the agent-loop benchmark record
@@ -47,11 +49,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-115 main theorems in `GeoDaTest/Axioms.lean` depend only on
+117 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 115 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -224,7 +226,9 @@ it a pointer plus the agent-specific protocol; do not let it become a second cop
 
 ## Provenance — keep this honest
 
-Every proof here was produced by Claude (Claude desktop), **not** by Codex. The
+The baseline proofs through `eb53ae6` were produced by Claude (Claude desktop),
+**not** by Codex. The Paper 1 revision adds two proofs prepared with Codex;
+see `paper/verification.md` for their verification status. The
 project's stated first milestone is for *Codex* to complete the GNS →
 SAR/SEM/SDM formalization independently, so this repository currently serves as a
 reference/answer key rather than as evidence for that milestone. `README.md`
@@ -245,7 +249,7 @@ Do not quietly present this work as Codex's, and do not delete that note.
   and a zero diagonal does not imply row standardization; both directions are
   proved, so do not silently assume either. Islands are handled by a totalized
   inverse (`(0 : ℝ)⁻¹ = 0`), not by a side condition on `normalize`.
-* **SAR and SEM are not observationally equivalent in general.**
+* **SAR and SEM reduced-form map equality is not observational equivalence.**
   `reducedForm_eq_iff_inverse_eq_one` shows the reduced forms agree for all
   `(Xβ, ε)` exactly when the inverse matrix is the identity (i.e. `ρW = λW = 0`).
   The defensible equivalence statement, and the one formalized, is

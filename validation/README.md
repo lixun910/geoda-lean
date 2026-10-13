@@ -82,10 +82,10 @@ stated explicitly.
   passes `imethod="true_inv"` so that the truncated series' error cannot be mistaken
   for a disagreement about the formula. The one exception,
   `test_spreg_default_power_exp_is_a_truncated_neumann_series`, measures that error and
-  shows it shrinking with `|ρ|` — which is the numerical shadow of
-  `GeoDa.isUnit_one_sub_smul_of_rowSubstochastic`, where `‖W *ᵥ v‖ ≤ ‖v‖` for
-  nonnegative row-substochastic `W` (`GeoDa.norm_mulVec_le`) is what makes the series
-  converge for `|ρ| < 1`.
+  records truncation error on selected inputs. Separately,
+  `GeoDa.isUnit_one_sub_smul_of_rowSubstochastic` proves invertibility under
+  weights bounds. It does not prove a series identity, a floating-point error
+  bound, or the validity of `spreg`'s stopping guard.
 * **Variance convention.** `IsWhiteNoise μ ε σ²` is `Cov(ε) = σ²I` with the centered
   covariance of `GeoDa.RandomVector`. The tests here only touch first moments
   (`y`, `u`), so the convention does not arise; see the `GeoDa.RandomVector` section of
@@ -98,7 +98,10 @@ stated explicitly.
 ## Tolerances and degenerate cases
 
 * `TOL = 1e-10` for the pure-NumPy comparisons, which are well conditioned by
-  construction. The `spreg` comparisons use `1e-8`, since `spreg` goes through a
+  construction. SDEM tests now explicitly set `rtol=0.0`; other existing
+  `allclose` tests retain NumPy's default relative tolerance unless specified,
+  so their `atol` is not an absolute-error-only guarantee.
+  The `spreg` comparisons use `atol=1e-8`, since `spreg` goes through a
   sparse-matrix inverse rather than a solve.
 * `test_invertibility_fails_at_the_stability_boundary` shows `I - ρW` is singular at
   `ρ = 1` for row-stochastic `W`: `GeoDa.Multiplier`'s `|ρ| < 1` is not slack.

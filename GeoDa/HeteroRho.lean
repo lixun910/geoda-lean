@@ -59,7 +59,7 @@ both are cheap to get wrong.
 * `GeoDa.heteroSARDes_iff_reducedForm` : the reduced form
   `y = (1 - diag(ρ)W)⁻¹ (Xβ + ε)`.
 * `GeoDa.diagMul_injective_of_no_island`, `GeoDa.heteroSARDes_island_invariant`,
-  `GeoDa.heteroSAR_reducedForm_island_invariant` : **identifiability**, both directions.
+  `GeoDa.heteroSAR_reducedForm_island_invariant` : **algebraic map injectivity and island invariance**.
 
 ## What is not here
 
@@ -239,10 +239,11 @@ theorem diagMul_eq_of_reducedForm_eq (W : WMat n) (ρ ρ' : Vec n)
     rw [← h₁.unit_spec, ← h₂.unit_spec, hunit]
   exact sub_right_inj.mp hsub
 
-/-- **Parameter identification for the heterogeneous model.** If no row of `W` is an
+/-- **Algebraic parameter recovery for the heterogeneous model.** If no row of `W` is an
 island, then the reduced form — as a function of `(Xβ, ε)` — determines `ρ` uniquely.
 
-This is a statement about the model, not about any estimator: it says two parameter
+This is map injectivity, not statistical identification from observable distributions.
+It says two parameter
 vectors that cannot be told apart by the reduced form must be equal. Whether `ρ` can be
 *estimated*, and with what rate, is a different question that this file does not address. -/
 theorem heteroSAR_parameter_identified (W : WMat n) (h : ∀ i, ¬ Island W i) (ρ ρ' : Vec n)

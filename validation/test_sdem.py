@@ -60,17 +60,17 @@ def _col(v):
 def test_spreg_dgp_slxerror_matches_the_sdem_reduced_form(seed):
     """`spreg.dgp.dgp_slxerror` computes exactly `GeoDa.sdemDes_iff_reducedForm`.
 
-    `imethod="true_inv"` asks for the exact inverse rather than the truncated series, so the
+    `imethod="true_inv"` asks for a floating-point matrix inverse rather than the truncated series, so the
     two agree to round-off and the comparison is about the *formula*, not about a tolerance.
     """
     W, X, beta, theta, eps, lam = _instance(seed)
     w = to_pysal_W(W)
-    assert np.allclose(w.full()[0], W, atol=TOL)
+    assert np.allclose(w.full()[0], W, atol=TOL, rtol=0.0)
 
     y_spreg = dgp_slxerror(_col(eps), _col(X @ beta), _col((W @ X) @ theta), w,
                            lam=lam, imethod="true_inv")
     _, y = sdem_reduced(W, lam, X, beta, theta, eps)
-    assert np.allclose(y_spreg.ravel(), y, atol=SPREG_TOL)
+    assert np.allclose(y_spreg.ravel(), y, atol=SPREG_TOL, rtol=0.0)
 
 
 @pytest.mark.parametrize("seed", range(4))
@@ -78,12 +78,12 @@ def test_islands_do_not_break_the_dgp(seed):
     """An island row is fine here too: substochasticity is enough for invertibility, as
     `GeoDa.isUnit_one_sub_smul_of_rowSubstochastic` says."""
     W, X, beta, theta, eps, lam = _instance(seed, islands=True)
-    assert np.allclose(W[0, :], 0.0)
+    assert np.allclose(W[0, :], 0.0, atol=TOL, rtol=0.0)
     w = to_pysal_W(W, row_standard=False)
     y_spreg = dgp_slxerror(_col(eps), _col(X @ beta), _col((W @ X) @ theta), w,
                            lam=lam, imethod="true_inv")
     _, y = sdem_reduced(W, lam, X, beta, theta, eps)
-    assert np.allclose(y_spreg.ravel(), y, atol=SPREG_TOL)
+    assert np.allclose(y_spreg.ravel(), y, atol=SPREG_TOL, rtol=0.0)
 
 
 # --------------------------------------------------------------------------------------
@@ -99,8 +99,8 @@ def test_sdem_with_lambda_zero_is_slx(seed):
     """
     W, X, beta, theta, eps, _ = _instance(seed)
     u, y = sdem_reduced(W, 0.0, X, beta, theta, eps)
-    assert np.allclose(u, eps, atol=TOL)
-    assert np.allclose(y, X @ beta + (W @ X) @ theta + eps, atol=TOL)
+    assert np.allclose(u, eps, atol=TOL, rtol=0.0)
+    assert np.allclose(y, X @ beta + (W @ X) @ theta + eps, atol=TOL, rtol=0.0)
 
 
 @pytest.mark.parametrize("seed", range(4))
@@ -114,10 +114,10 @@ def test_sdem_with_theta_zero_is_sem(seed):
 
     w = to_pysal_W(W)
     y_spreg = dgp_sperror(_col(eps), _col(X @ beta), w, lam=lam, imethod="true_inv")
-    assert np.allclose(y_spreg.ravel(), y, atol=SPREG_TOL)
+    assert np.allclose(y_spreg.ravel(), y, atol=SPREG_TOL, rtol=0.0)
 
     u_sem, y_sem = sem_reduced(W, lam, X, beta, eps)
-    assert np.allclose(y, y_sem, atol=TOL)
+    assert np.allclose(y, y_sem, atol=TOL, rtol=0.0)
 
 
 def test_the_two_nestings_compose_to_slx_only_when_both_coefficients_vanish():
@@ -128,8 +128,8 @@ def test_the_two_nestings_compose_to_slx_only_when_both_coefficients_vanish():
     _, y_sdem = sdem_reduced(W, 0.4, X, beta, theta, eps)
     _, y_lambda0 = sdem_reduced(W, 0.0, X, beta, theta, eps)
     _, y_theta0 = sdem_reduced(W, 0.4, X, beta, np.zeros_like(beta), eps)
-    assert not np.allclose(y_sdem, y_lambda0, atol=TOL)
-    assert not np.allclose(y_sdem, y_theta0, atol=TOL)
+    assert not np.allclose(y_sdem, y_lambda0, atol=TOL, rtol=0.0)
+    assert not np.allclose(y_sdem, y_theta0, atol=TOL, rtol=0.0)
 
 
 # --------------------------------------------------------------------------------------
@@ -151,12 +151,11 @@ def test_spreg_default_power_exp_fails_near_the_stability_boundary():
     """`spreg`'s default `imethod="power_exp"` is a truncated expansion, and near `|λ| = 1`
     it does not merely lose accuracy — it refuses.
 
-    Two things are recorded here, both of which the Lean side explains. Inside the interior
-    the series converges and the truncation error is small, which is
-    `GeoDa.isUnit_one_sub_smul_of_rowSubstochastic` in numbers: `‖W *ᵥ v‖ ≤ ‖v‖` makes the
-    terms shrink like `|λ|ᵏ`. Near the boundary the convergence criterion fails and `spreg`
-    raises `"power expansion will not converge"` rather than returning a wrong number, which
-    is the right behaviour and still a failure case worth knowing about.
+    The implementation rejects an increase in the Euclidean norm of consecutive
+    increments. That guard is stronger than convergence: a nonsymmetric row-stochastic
+    matrix can transiently amplify the Euclidean norm while its infinity norm is
+    nonexpansive. At lambda=0.99 the series still converges mathematically.
+    The Lean theorem proves invertibility, not this algorithm's stopping behavior.
 
     Every comparison above asks for `imethod="true_inv"` precisely so that none of this can
     be mistaken for a disagreement about the model.

@@ -9,3 +9,4 @@ import GeoDa.ReducedForm
 import GeoDa.Sdem
 import GeoDa.SpatialWeights
 import GeoDa.Weights
+import GeoDa.ModelMoments

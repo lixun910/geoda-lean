@@ -504,3 +504,7 @@ example (ε : Ω → Vec 2) (hε : IsWhiteNoise μ ε 1) (xb γ : Vec 2) :
 end Prob
 
 end GeoDaTest
+
+-- Paper 1 semantic-review additions
+#check GeoDa.isUnit_one_sub_smul_of_colSubstochastic
+#check GeoDa.gnsDes_moments_of_rowSubstochastic

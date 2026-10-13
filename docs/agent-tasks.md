@@ -72,9 +72,11 @@ most one, as in a column-standardized weights matrix — should give the same fo
 
 **What the loop had to get right.**
 
-* **Which multiplier is invertible.** Column-substochasticity does *not* make `W` an
-  `ℓ∞` contraction; it makes `Wᵀ` one. The task was stated for `1 - ρ • Wᵀ`, and the
-  tempting shortcut — proving `1 - ρW` under a column condition — is false.
+* **Which norm is controlled.** Nonnegative column-substochasticity makes `Wᵀ` an
+  `ℓ∞` contraction, but need not make `W` one. Both `1 - ρ • Wᵀ` and `1 - ρ • W`
+  are nevertheless invertible for `|ρ| < 1`, because transposition preserves
+  invertibility. The earlier account incorrectly called the latter conclusion false.
+  The direct corollary is `isUnit_one_sub_smul_of_colSubstochastic`.
 * **Reuse, not re-proof.** `Wᵀ` is nonnegative and row-substochastic exactly when `W` is
   nonnegative and column-substochastic, both by `rfl`, so
   `isUnit_one_sub_smul_of_rowSubstochastic` applies to `Wᵀ` unchanged and the whole

@@ -22,7 +22,7 @@ We prove
   system* `(1 - ρW) y = Xβ + ε` resp. `(1 - λW) u = ε`;
 * the **reduced forms**: when `1 - ρW` (resp. `1 - λW`) is invertible, the linear
   system has the unique solution `y = (1 - ρW)⁻¹ (Xβ + ε)`;
-* an **observational-equivalence** statement: with `B` the inverse of `1 - λW`,
+* a **filtered reduced-form map equality** statement: with `B` the inverse of `1 - λW`,
   the SEM reduced form `Xβ + Bε` equals the SAR reduced form `B((1 - λW)Xβ + ε)`
   — that is, a SEM is a SAR with spatially filtered regressors;
 * the **non-equivalence** statement: the SAR and SEM reduced forms agree for all

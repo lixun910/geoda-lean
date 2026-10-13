@@ -152,3 +152,7 @@ user-introduced axiom.
 #print axioms GeoDa.sdemDes_iff_reducedForm_of_rowSubstochastic
 #print axioms GeoDa.sdem_moments
 #print axioms GeoDaTest.sdemViaDsl_eq_SDEMDes
+
+-- Paper 1 semantic-review additions
+#print axioms GeoDa.isUnit_one_sub_smul_of_colSubstochastic
+#print axioms GeoDa.gnsDes_moments_of_rowSubstochastic

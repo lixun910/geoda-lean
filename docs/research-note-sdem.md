@@ -24,7 +24,7 @@ Precisely what is being reproduced:
 | reduced form `y = Xβ + WXθ + (I − λW)⁻¹ε` | LeSage (2014) | `GeoDa.sdemDes_iff_reducedForm` |
 | SDEM subsumes SLX when `λ = 0` | LeSage (2014) | `GeoDa.sdemDes_iff_slxDes_of_lam_zero` |
 | SDEM subsumes SEM when `θ = 0` | LeSage (2014) | `GeoDa.sdemDes_iff_semDes_of_theta_zero` |
-| `u = (I − λW)⁻¹ε = (I + λW + λ²W² + ⋯)ε` | LeSage (2014) | the same reduced-form theorem |
+| `u = (I − λW)⁻¹ε` | LeSage (2014), p. 16 | the same reduced-form theorem; the infinite-series identity is **not formalized** |
 
 ## 2. Phase A — prior art, and what I did not do
 
@@ -97,7 +97,7 @@ nothing about `W`, as every model definition in this repository does.
 
 ## 4. Phase C — numerical cross-check, and its tolerances
 
-`validation/test_sdem.py`, 13 tests, run in CI. The point of the design is that the reference
+`validation/test_sdem.py`, parametrized numerical tests, run in CI. The point of the design is that the reference
 is **not ours**: `spreg.dgp.dgp_slxerror` implements the SDEM DGP in PySAL, doing
 `u₁ = (I − λW)⁻¹u`, `y = xb + wxg + u₁`, which is `sdemDes_iff_reducedForm` in somebody else's
 code.
@@ -106,11 +106,12 @@ code.
 | --- | --- |
 | `dgp_slxerror` vs the reference reduced form, `imethod="true_inv"`, seeds 0–5 | agree to `1e-8` |
 | islands (a zero row) | agree; existence survives, as `rowSubstochastic` predicts |
-| `λ = 0` gives SLX | exact; `u = ε` to `1e-10` |
+| `λ = 0` gives SLX | numerical equality within absolute `1e-10` |
 | `θ = 0` gives SEM | agrees with `dgp_sperror` to `1e-8` and with `sem_reduced` to `1e-10` |
 | the two nestings are independent | at `λ = 0.4` both `λ ↦ 0` and `θ ↦ 0` change `y` |
 
-Tolerances are `1e-10` for the pure-NumPy comparisons and `1e-8` for the `spreg` ones, which
+After the Paper 1 revision, every SDEM `allclose` call sets `rtol=0.0`.
+Absolute tolerances are `1e-10` for the pure-NumPy comparisons and `1e-8` for the `spreg` ones, which
 go through a sparse inverse rather than a solve.
 
 ### The failure case
@@ -122,13 +123,16 @@ it does **not** merely lose accuracy — it refuses:
 Exception: power expansion will not converge, check model specification and that weight are less than 1
 ```
 
-At `λ = 0.2` it agrees to better than `1e-9`; at `λ = 0.99` it raises. That is the right
-behaviour and still a failure worth recording, and it is the numerical shadow of the Lean
-hypothesis: `GeoDa.isUnit_one_sub_smul_of_rowSubstochastic` gets invertibility from
-`‖W *ᵥ v‖ ≤ ‖v‖` with `|λ| < 1`, which is exactly the condition under which the series
-converges. Every comparison above asks for `"true_inv"` so that this cannot be mistaken for a
-disagreement about the model. (`spreg`'s `model="ma"` moving-average error, which is not this
-model, remains untested, as in `validation/README.md`.)
+At `λ = 0.2` it agrees to better than `1e-9`; at `λ = 0.99` it raises on
+this fixture. Inspecting the pinned `spreg 1.9.1` function `utils.power_expansion`
+shows why: it raises when `scipy.linalg.norm(increment)` increases between
+iterations. For the column-vector input this is the Euclidean norm. Row
+substochasticity controls the infinity norm, not monotonic Euclidean decay.
+Thus the guard can reject a mathematically convergent series. Since `0.99 < 1`,
+this fixture satisfies the invertibility theorem's hypotheses. Neither series
+convergence nor floating-point error bounds are proved by that theorem.
+The `true_inv` comparisons use floating-point inverses, not exact arithmetic.
+
 
 ## 5. Phase D — the workflow metrics, reported honestly
 
@@ -179,11 +183,13 @@ three-quarters in the repository — which is a description of the P5 track, not
   interpretation of LeSage (2014) is *not* formalized: this repository has no calculus of
   spatial impacts.
 * **No empirical application.**
-* **No verified fidelity to the sources.** The papers were not read (§2).
+* **Limited source fidelity.** The original run did not read the papers (§2).
+  The later Paper 1 revision checked the relevant full-text LeSage (2014) passages;
+  this checks those claims only, not every reference summarized in this note.
 * **No claim about the rest of the repository.** As with the heterogeneous-`ρ` pilot, what
   the exercise does show is that the existing machinery composes.
 
-## 8. Reproducibility
+## 8. Original-run reproducibility (historical baseline)
 
 ```
 ./scripts/verify.sh                     # builds and audits the Lean side: 115 theorems
@@ -198,3 +204,15 @@ the DSL equivalence. Every theorem named in §3 is audited in `GeoDaTest/Axioms.
 Dependencies are pinned in `validation/requirements.txt` and were resolved and run green on
 CPython 3.14.2 (NumPy 2.5.4, SciPy 1.18.1, libpysal 4.15.0, spreg 1.9.1, pytest 9.1.1). CI
 runs both workflows on every pull request.
+
+## Paper 1 source-review addendum (2026-10-13)
+
+The original workflow account above is retained as historical provenance. In a
+subsequent review, LeSage (2014), p. 16 equations (1)–(2) and the disturbance
+inverse discussion, and p. 19 equation (6) with its restriction paragraph, were
+read in the original journal PDF. They support the SDEM equation and the two
+restrictions. The source additionally specifies Gaussian noise and zero-diagonal,
+row-normalized weights; our algebraic statements omit those assumptions, and our
+moment results only require the stated moments. This is a deliberate weakening
+for these conclusions, not a formalization of the source's full statistical model.
+See `paper/source-map.md` for precise source links and scope differences.

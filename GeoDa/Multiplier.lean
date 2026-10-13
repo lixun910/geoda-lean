@@ -181,7 +181,8 @@ theorem semMat_iff_reducedForm_of_rowSubstochastic (W : WMat n) (hW : Nonneg W)
 `GeoDa.RowSubstochastic` is the hypothesis that makes `W` an `ℓ∞` contraction and so
 makes `1 - ρW` invertible. The dual normalization — **column** sums at most one, as in a
 column-standardized weights matrix — is a different condition, and it does not make `W`
-itself a contraction. What it makes a contraction is `Wᵀ`.
+itself an `ℓ∞` contraction. What it makes an `ℓ∞` contraction is `Wᵀ`.
+Both multipliers are invertible, since transposition preserves invertibility.
 
 The transposed multiplier is not an ornamental case: it is the one that appears on the
 right of `Cov(Aξ) = A Cov(ξ) Aᵀ` in `GeoDa.RandomVector`. So it is worth having, and it
@@ -206,5 +207,13 @@ estimate here would prove the same theorem twice. -/
 theorem isUnit_one_sub_smul_transpose_of_colSubstochastic (W : WMat n) (hW : Nonneg W)
     (h1 : ColSubstochastic W) (ρ : ℝ) (hρ : |ρ| < 1) : IsUnit (1 - ρ • Wᵀ) :=
   isUnit_one_sub_smul_of_rowSubstochastic Wᵀ (fun i j => hW j i) (fun i => h1 i) ρ hρ
+
+/-- The original multiplier is also invertible under nonnegative column bounds.
+This does not assert that `W` is an infinity-norm contraction. -/
+theorem isUnit_one_sub_smul_of_colSubstochastic (W : WMat n) (hW : Nonneg W)
+    (h1 : ColSubstochastic W) (ρ : ℝ) (hρ : |ρ| < 1) : IsUnit (1 - ρ • W) := by
+  apply Matrix.isUnit_transpose.mp
+  simpa only [Matrix.transpose_sub, Matrix.transpose_one, Matrix.transpose_smul] using
+    isUnit_one_sub_smul_transpose_of_colSubstochastic W hW h1 ρ hρ
 
 end GeoDa

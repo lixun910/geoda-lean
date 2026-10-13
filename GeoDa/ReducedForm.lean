@@ -62,7 +62,7 @@ What is (and is not) claimed:
   distribution theory or numerical correctness.
 * The invertibility hypothesis is *stated*, not derived. Showing that `1 - ρW`
   is in fact invertible for `|ρ| < 1` under a row-standardization hypothesis is a
-  different (and open) problem — see the "Next steps" in `README.md`.
+  separate result, supplied by `GeoDa.Multiplier`.
 * No regularity of `W` (row standardization, symmetry, nonnegativity) and no
   regularity of `X` (full rank, centring, an intercept) is assumed.
 -/

@@ -1,0 +1,201 @@
+{
+  "python": "3.12.14",
+  "numpy": "2.5.4",
+  "scipy": "1.18.1",
+  "spreg": "1.9.1",
+  "atol": 1e-08,
+  "rtol": 0.0,
+  "cases": [
+    {
+      "seed": 0,
+      "islands": false,
+      "max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "seed": 1,
+      "islands": false,
+      "max_abs_error": 4.440892098500626e-16
+    },
+    {
+      "seed": 2,
+      "islands": false,
+      "max_abs_error": 0.0
+    },
+    {
+      "seed": 3,
+      "islands": false,
+      "max_abs_error": 8.881784197001252e-16
+    },
+    {
+      "seed": 4,
+      "islands": false,
+      "max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "seed": 5,
+      "islands": false,
+      "max_abs_error": 8.881784197001252e-16
+    },
+    {
+      "seed": 0,
+      "islands": true,
+      "max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "seed": 1,
+      "islands": true,
+      "max_abs_error": 2.220446049250313e-16
+    },
+    {
+      "seed": 2,
+      "islands": true,
+      "max_abs_error": 0.0
+    },
+    {
+      "seed": 3,
+      "islands": true,
+      "max_abs_error": 0.0
+    }
+  ],
+  "max_abs_error": 8.881784197001252e-16,
+  "lambda_099_increment_norms": [
+    {
+      "iteration": 1,
+      "norm2": 1.2166110756337827,
+      "norm_inf": 0.9466590415898505
+    },
+    {
+      "iteration": 2,
+      "norm2": 0.5572306254603759,
+      "norm_inf": 0.33437923346952336
+    },
+    {
+      "iteration": 3,
+      "norm2": 0.3214847482415711,
+      "norm_inf": 0.22867957418089613
+    },
+    {
+      "iteration": 4,
+      "norm2": 0.22703097328491442,
+      "norm_inf": 0.13805478247211653
+    },
+    {
+      "iteration": 5,
+      "norm2": 0.18039012630027113,
+      "norm_inf": 0.11538064154988009
+    },
+    {
+      "iteration": 6,
+      "norm2": 0.15977673693024408,
+      "norm_inf": 0.10058666941112895
+    },
+    {
+      "iteration": 7,
+      "norm2": 0.1328935064538355,
+      "norm_inf": 0.08764594909972197
+    },
+    {
+      "iteration": 8,
+      "norm2": 0.11529535128706107,
+      "norm_inf": 0.06986185549458482
+    },
+    {
+      "iteration": 9,
+      "norm2": 0.09703993215406553,
+      "norm_inf": 0.06500091815682152
+    },
+    {
+      "iteration": 10,
+      "norm2": 0.0844765791863001,
+      "norm_inf": 0.050198009995432856
+    },
+    {
+      "iteration": 11,
+      "norm2": 0.07064336875470072,
+      "norm_inf": 0.048007322269791854
+    },
+    {
+      "iteration": 12,
+      "norm2": 0.06198668152260464,
+      "norm_inf": 0.036032761165971997
+    },
+    {
+      "iteration": 13,
+      "norm2": 0.05148408096665417,
+      "norm_inf": 0.03567243355431227
+    },
+    {
+      "iteration": 14,
+      "norm2": 0.045624401810911715,
+      "norm_inf": 0.026943549201473335
+    },
+    {
+      "iteration": 15,
+      "norm2": 0.03759686695272546,
+      "norm_inf": 0.026674113709458602
+    },
+    {
+      "iteration": 16,
+      "norm2": 0.03376834060407324,
+      "norm_inf": 0.02030502702499105
+    },
+    {
+      "iteration": 17,
+      "norm2": 0.02757203122350295,
+      "norm_inf": 0.02010197675474114
+    },
+    {
+      "iteration": 18,
+      "norm2": 0.02521380839063207,
+      "norm_inf": 0.01545385034982249
+    },
+    {
+      "iteration": 19,
+      "norm2": 0.02038869328498189,
+      "norm_inf": 0.015299311846324265
+    },
+    {
+      "iteration": 20,
+      "norm2": 0.01908441371087846,
+      "norm_inf": 0.011905527834916099
+    },
+    {
+      "iteration": 21,
+      "norm2": 0.015305889128148288,
+      "norm_inf": 0.011786472556566938
+    },
+    {
+      "iteration": 22,
+      "norm2": 0.014740246588026413,
+      "norm_inf": 0.009306897607362212
+    },
+    {
+      "iteration": 23,
+      "norm2": 0.011782172882114651,
+      "norm_inf": 0.00921382863128859
+    },
+    {
+      "iteration": 24,
+      "norm2": 0.01170849524862438,
+      "norm_inf": 0.007400605189586445
+    },
+    {
+      "iteration": 25,
+      "norm2": 0.009411924560698528,
+      "norm_inf": 0.00732659913769058
+    },
+    {
+      "iteration": 26,
+      "norm2": 0.009632475892673912,
+      "norm_inf": 0.005999100618636637
+    }
+  ],
+  "first_norm_increase": {
+    "iteration": 26,
+    "previous_norm2": 0.009411924560698528,
+    "norm2": 0.009632475892673912
+  },
+  "guard_error": "power expansion will not converge, check model specification and that weight are less than 1",
+  "spectral_radius": 0.9899999999999977,
+  "power_expansion_source_sha256": "eea8d7e13a8a6a0afe58a805ca57d953fd4632a87704e9d0051d8530238f4bb3"
+}

@@ -6,10 +6,10 @@ reduced form and the SAR/SEM/SDM reduced forms under an invertibility
 assumption, and the spatial weights predicates (nonnegativity, row
 standardization, islands) those models are stated over.
 
-**Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 115 main
-theorems (see [Verification](#verification) for the exact toolchain, command and
-observed output).
+**Status:** baseline `eb53ae6` records successful verification of 115 audited
+results. The Paper 1 revision adds two results (117 audit entries total), whose
+full verification is **pending**; see [the validation record](paper/verification.md).
+Do not treat the baseline transcript as evidence for these additions.
 
 ## Contents
 
@@ -23,12 +23,12 @@ GeoDa/Multiplier.lean     invertibility of 1 - ρW from the weights themselves
 GeoDa/RandomVector.lean   probability layer: expectation, covariance, model moments
 GeoDa/DSL.lean            a `spatial_model` command: a model from its equation alone
 GeoDa/Nesting.lean        SLX, and GNS with both spatial coefficients switched off
-GeoDa/HeteroRho.lean      the heterogeneous-ρ model: reduced form and identifiability
+GeoDa/HeteroRho.lean      the heterogeneous-ρ model: reduced form and algebraic parameter recovery
 GeoDa/Sdem.lean           the spatial Durbin error model: nestings and reduced form
 GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
 GeoDaTest/DSL.lean        the DSL's tests: rfl-equivalence and pinned rejections
 GeoDaTest/AgentTasks.lean the agent-loop benchmark, including the refuted conjectures
-GeoDaTest/HeteroRho.lean  the heterogeneous-ρ tests: both directions of identifiability
+GeoDaTest/HeteroRho.lean  the heterogeneous-ρ tests: map injectivity and island invariance
 GeoDaTest/Sdem.lean       the SDEM tests: nestings, reduced form, and the DSL equivalence
 GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
@@ -100,10 +100,11 @@ square matrices over `ℝ` this is equivalent to nonsingularity.
   "is" a SAR: not with the same regressors, but with the common-factor-filtered
   ones.
 * `reducedForm_eq_iff_inverse_eq_one`: the two reduced forms agree as functions
-  of `(Xβ, ε)` — i.e. SAR and SEM are observationally equivalent — exactly when
-  the inverse matrices collapse to the identity. So for `ρW ≠ 0` and `λW ≠ 0`
-  they are **not** observationally equivalent; the equivalence in the previous
-  item is an equivalence *after transforming the regressors*.
+  of all supplied vectors `(xb, ε)` exactly when both inverse matrices are the
+  identity. This is equality of deterministic reduced-form maps, not equality of
+  observable probability distributions. It does not establish statistical
+  identifiability for a fixed design or innovation distribution. The previous
+  item establishes a map equality *after transforming the regressors*.
 
 ### Design matrix (`GeoDa.Design`)
 
@@ -183,8 +184,8 @@ y = A⁻¹ (Xβ + WXθ + B⁻¹ ε)
   with `λ = 0`, where `B = 1` and `u = ε`, so the reduced form collapses to
   `y = (1 - ρW)⁻¹ (Xβ + WXθ + ε)`. (SAR and SEM are already in `GeoDa.Design`.)
 
-The hypothesis is *stated*, not derived: nothing here shows that `1 - ρW` is
-invertible, let alone for `|ρ| < 1`. See the [next steps](#next-steps).
+This module assumes invertibility. `GeoDa.Multiplier` derives it from nonnegative
+row-substochastic weights and an absolute parameter bound below one.
 
 ### Spatial weights (`GeoDa.SpatialWeights`)
 
@@ -330,8 +331,8 @@ The suite also pins down the conventions that are the usual source of spurious
 convention shared by `GeoDa.normalize` and `libpysal`'s `transform="r"`, and the fact
 that `spreg`'s *default* `imethod="power_exp"` is a truncated power expansion, which
 is why every comparison but one asks for `imethod="true_inv"`. The exception measures
-that truncation error and shows it shrinking with `|ρ|` — the numerical shadow of
-`GeoDa.isUnit_one_sub_smul_of_rowSubstochastic`. Two Lean counterexamples
+truncation error on selected inputs. The Lean theorem establishes invertibility,
+not a bound on implementation error or a proof of the stopping criterion. Two Lean counterexamples
 (`GeoDaTest.wtwo_not_isUnit`, `GeoDaTest.wneg_not_isUnit`) are reproduced numerically
 as well.
 
@@ -351,9 +352,9 @@ about *model equations* and says nothing about estimators, consistency or asympt
 distributions; the numbers there are about `spreg`, not about `GeoDa`, and every one is
 a finite-sample estimate. They are not evidence for any Lean theorem.
 
-What they are good for is the opposite direction, and for locating where an estimator
-stops being trustworthy — bias in `ρ` grows as `ρ` moves from `0.5` toward `0.8` and the
-stability bound that `GeoDa.Multiplier`'s `|ρ| < 1` hypothesis guards.
+These finite-sample experiments can flag estimator behavior worth investigating.
+The invertibility theorem does not imply a bound on estimation bias or coverage;
+trends in the smoke grid are descriptive and are not an explanation of estimator failure.
 
 Two things are stated rather than papered over. `spreg` has **no estimator for GNS with
 `θ ≠ 0` *and* `λ ≠ 0`** — the model `GeoDa.GNSDes` writes down — so `SUPPORT["gns"]` is
@@ -439,8 +440,8 @@ What is machine-checked: **existence and uniqueness** of the solution, for nonne
 row-substochastic `W` and parameters uniformly bounded by a single `c < 1` — the estimate
 that `GeoDa.Multiplier` proves for a scalar `ρ`, with the scalar bound replaced by a bound
 on every coordinate; the **reduced form** `y = (1 - diag(ρ)W)⁻¹ (Xβ + ε)`, its expectation
-and covariance then following from `sar_moments` unchanged; and **identifiability, in both
-directions**. `ρ i` is determined by the reduced form exactly when row `i` of `W` is not an
+and covariance then following from `sar_moments` unchanged; and **algebraic parameter
+recovery from the full reduced-form map**. `ρ i` is determined by the reduced form exactly when row `i` of `W` is not an
 island: an island's parameter multiplies a zero row and is invisible to the model, so two
 values of it generate identical data; and when no row is an island, `ρ ↦ diag(ρ) W` is
 injective, so the reduced form recovers `ρ` uniquely. That is the formal counterpart of the
@@ -450,7 +451,9 @@ injective, so the reduced form recovers `ρ` uniquely. That is the formal counte
 gives **bit-identical** simulated data for two different parameter vectors, which is the
 strongest form the check can take.
 
-The identifiability result is deliberately *not* an estimator result. A prototype that
+The map-injectivity result is neither statistical identifiability nor an estimator result.
+Equality of observable distributions at a fixed design is a different premise from
+equality of the reduced-form maps for every supplied `(xb, ε)`. A prototype that
 recovers `ρ` from the structural equation is recorded, and it is labelled as **not
 feasible**, because it needs `ε`. Whether `ρ` can be estimated, at what rate, and under what
 design, is left as an open obligation, along with five others, in §6 of the research note.
@@ -476,12 +479,14 @@ hypothesis *derived* from the weights, and the moments from `sem_moments` unchan
 The numerical cross-check is against **PySAL's** DGP, not ours: `spreg.dgp.dgp_slxerror`
 computes exactly the reduced form, so agreement is not circular. Two failure cases are
 recorded: `spreg`'s default `imethod="power_exp"` *refuses* rather than degrades near `|λ| = 1`,
-which is the numerical shadow of the Lean hypothesis; and islands, which do not break
-existence but would break identification.
+because its Euclidean increment-norm guard can reject a convergent series. This
+is distinct from mathematical invertibility. Islands preserve existence; the
+parameter-invariance result concerns observation-specific `ρ`, not scalar SDEM `λ`.
 
 `docs/research-note-sdem.md` carries the prior art, the workflow metrics, and — with more
-prominence than the results — what the exercise does **not** show. Chiefly: the papers were
-**searched for, not read**, and the run was **not blind** — the required literature search
+prominence than the results — what the exercise does **not** show. Chiefly: the original run only searched for papers and was **not blind**. The
+Paper 1 revision subsequently checked LeSage (2014), pp. 16 and 19, against the
+full source (see `paper/source-map.md`); this does not retroactively make the run blind — the required literature search
 returned the reduced form and both nestings, and the repository already contained the same
 proof shape for SEM and SAR. It is a demonstration that a published model can be reconstructed
 and cross-checked through the existing library; it is not evidence that the workflow scales to
@@ -528,6 +533,8 @@ Toolchain: Lean `leanprover/lean4:v4.35.0`, Mathlib `v4.35.0`
 (`rev 56a005855ea17e0b0958f73ec801ae140b0a1679`); both pinned in `lean-toolchain`
 and `lake-manifest.json`.
 
+Historical baseline transcript (not rerun for the Paper 1 revision):
+
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
@@ -536,13 +543,13 @@ Build completed successfully (2631 jobs).
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
-… (56 theorems, all on the same list)
+… (remaining baseline audit entries)
      ok: all 115 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```
 
-Every main theorem depends only on Lean's three standard axioms; none depends on
+The historical baseline audit reports only Lean's three standard axioms; none depends on
 `sorryAx`, and no additional axiom is introduced.
 
 Two CI workflows run: `Lean` (`.github/workflows/lean.yml`) runs `./scripts/verify.sh`
@@ -582,7 +589,9 @@ the CI configuration were added in the same pass. `GeoDa/Design.lean`, which for
 `Xβ` and `WXθ` as matrix products, was added afterwards in the same way. All of it
 was produced with Claude (Claude desktop), **not** with Codex: if the milestone
 requires the proofs to be Codex's own work, they should be re-derived
-independently and the two versions compared.
+independently and the two versions compared. The later Paper 1 revision was
+prepared with Codex, including two added declarations; its validation status is
+recorded separately in `paper/verification.md`.
 
 ## Next steps
 
@@ -599,3 +608,10 @@ independently and the two versions compared.
    formulas and `validation/benchmark/` studies the estimators, with the usual caveat
    that neither is verification. What remains is a GNS **estimator** — `spreg` has none
    for `θ ≠ 0` with `λ ≠ 0`, so that model can be simulated but not fitted.
+
+## Paper 1 working manuscript
+
+See [paper/manuscript.md](paper/manuscript.md), the [source map](paper/source-map.md),
+and [revision validation record](paper/verification.md). The revision adds
+`isUnit_one_sub_smul_of_colSubstochastic` and
+`gnsDes_moments_of_rowSubstochastic` (`GeoDa/ModelMoments.lean`).
