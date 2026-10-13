@@ -7,7 +7,7 @@ assumption, and the spatial weights predicates (nonnegativity, row
 standardization, islands) those models are stated over.
 
 **Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 92 main
+that no proof uses `sorry` or `admit`, and audits the axioms of all 106 main
 theorems (see [Verification](#verification) for the exact toolchain, command and
 observed output).
 
@@ -23,9 +23,11 @@ GeoDa/Multiplier.lean     invertibility of 1 - ρW from the weights themselves
 GeoDa/RandomVector.lean   probability layer: expectation, covariance, model moments
 GeoDa/DSL.lean            a `spatial_model` command: a model from its equation alone
 GeoDa/Nesting.lean        SLX, and GNS with both spatial coefficients switched off
+GeoDa/HeteroRho.lean      the heterogeneous-ρ model: reduced form and identifiability
 GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
 GeoDaTest/DSL.lean        the DSL's tests: rfl-equivalence and pinned rejections
 GeoDaTest/AgentTasks.lean the agent-loop benchmark, including the refuted conjectures
+GeoDaTest/HeteroRho.lean  the heterogeneous-ρ tests: both directions of identifiability
 GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
 scripts/verify.sh         the verification suite
@@ -33,6 +35,7 @@ validation/               numerical cross-checks against NumPy, SciPy and PySAL 
 validation/benchmark/     Monte Carlo bias/RMSE/coverage study of spreg estimators
 docs/DSL-RFC.md           the design of the `spatial_model` DSL
 docs/agent-tasks.md       the agent-loop benchmark: three tasks and what they returned
+docs/research-note-heterogeneous-rho.md  the research pilot: prior art, findings, open obligations
 AGENTS.md                 working notes for agents; points at CLAUDE.md
 .claude/skills/geoda-lean/ a reusable Skill: the conventions and the protocol
 .github/workflows/        CI: the verification suite, and the numerical cross-checks
@@ -419,6 +422,37 @@ as false rather than replaced by a nearby true one. It does not demonstrate that
 theorems are the right ones, that the models are the models the literature means, or that
 any estimator is consistent. No statement in this repository is claimed to be novel.
 
+### Research pilot: heterogeneous autoregressive parameters (`GeoDa.HeteroRho`)
+
+`GeoDa/HeteroRho.lean` formalizes one model that is *not* in the rest of the repository:
+the **heterogeneous-`ρ`** spatial autoregression, `y = diag(ρ) W y + Xβ + ε`, where every
+region has its own autoregressive parameter. It is a **known** model — the heterogeneous
+SAR of Aquaro, Bailey and Pesaran in spatial econometrics, the heterogeneous peer-effects
+model of the network literature — and no novelty is claimed for it or for anything proved
+about it. `docs/research-note-heterogeneous-rho.md` gives the prior art and is explicit that
+the references were located by search and not read in full.
+
+What is machine-checked: **existence and uniqueness** of the solution, for nonnegative
+row-substochastic `W` and parameters uniformly bounded by a single `c < 1` — the estimate
+that `GeoDa.Multiplier` proves for a scalar `ρ`, with the scalar bound replaced by a bound
+on every coordinate; the **reduced form** `y = (1 - diag(ρ)W)⁻¹ (Xβ + ε)`, its expectation
+and covariance then following from `sar_moments` unchanged; and **identifiability, in both
+directions**. `ρ i` is determined by the reduced form exactly when row `i` of `W` is not an
+island: an island's parameter multiplies a zero row and is invisible to the model, so two
+values of it generate identical data; and when no row is an island, `ρ ↦ diag(ρ) W` is
+injective, so the reduced form recovers `ρ` uniquely. That is the formal counterpart of the
+"isolates" discussion in Anselin and Rey, §3.1.5.1.
+
+`validation/test_hetero_rho.py` checks the same statements numerically — the island case
+gives **bit-identical** simulated data for two different parameter vectors, which is the
+strongest form the check can take.
+
+The identifiability result is deliberately *not* an estimator result. A prototype that
+recovers `ρ` from the structural equation is recorded, and it is labelled as **not
+feasible**, because it needs `ε`. Whether `ρ` can be estimated, at what rate, and under what
+design, is left as an open obligation, along with five others, in §6 of the research note.
+Nothing here makes an empirical claim, and no estimator is validated.
+
 ## Scope and non-claims
 
 This is a formalization of *model equations*, plus the first two moments of the
@@ -463,13 +497,13 @@ and `lake-manifest.json`.
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
-Build completed successfully (2626 jobs).
+Build completed successfully (2629 jobs).
 ==> 2/3  no sorry / admit
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
 … (56 theorems, all on the same list)
-     ok: all 92 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 106 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```

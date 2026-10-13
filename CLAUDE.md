@@ -4,12 +4,12 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 92 theorems.
+**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 106 theorems.
 
 ## Layout
 
 ```
-GeoDa.lean             root module (imports all eight libraries)
+GeoDa.lean             root module (imports all nine libraries)
 GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
 GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
 GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
@@ -20,10 +20,13 @@ GeoDa/Multiplier.lean  |ρ| < 1 ⇒ IsUnit (1 - ρ • W) from Nonneg + RowSubst
 GeoDa/RandomVector.lean  probability layer: rvExp, rvCov, IsWhiteNoise, model moments
 GeoDa/DSL.lean         `spatial_model`: generate a model's `def` from its equation
 GeoDa/Nesting.lean     SLX, and GNS with both spatial coefficients off
+GeoDa/HeteroRho.lean   the heterogeneous-ρ model: reduced form and identifiability
 GeoDaTest/DSL.lean     DSL tests: rfl-equivalence to the hand-written specs, rejections
 GeoDaTest/AgentTasks.lean  the agent-loop benchmark's refuted conjectures
+GeoDaTest/HeteroRho.lean    heterogeneous-ρ tests: both directions of identifiability
 AGENTS.md              the agent protocol; points at this file rather than copying it
 docs/agent-tasks.md    the agent-loop benchmark record
+docs/research-note-heterogeneous-rho.md  the research pilot
 .claude/skills/geoda-lean/  reusable Skill: conventions + the task protocol
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
@@ -41,11 +44,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-92 main theorems in `GeoDaTest/Axioms.lean` depend only on
+106 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 92 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 106 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -259,20 +262,26 @@ audit count only grew (12 → 25).
 
 What is left, roughly in order of value:
 
-1. **A multivariate normal innovation, and a likelihood built on it.** The probability
+1. **A feasible estimator for the heterogeneous-ρ model.** `GeoDa/HeteroRho.lean` proves
+   that `ρ` is determined by the reduced form away from islands, but a *prototype* that
+   recovers it needs `ε`, which no implementation observes. Estimability, rates and
+   asymptotics are open; `docs/research-note-heterogeneous-rho.md` §6 lists five further
+   obligations of the same kind. Do not describe the identifiability result as an estimator
+   result.
+2. **A multivariate normal innovation, and a likelihood built on it.** The probability
    layer in `GeoDa/RandomVector.lean` stops at two moments (`IsWhiteNoise`); fixing a
    distribution is strictly stronger and should stay a separate claim. This is the
    stretch goal of the P1.1 issue, not started.
-2. **Templated statements.** `GeoDa/DSL.lean` generates a model's *definition* from its
+3. **Templated statements.** `GeoDa/DSL.lean` generates a model's *definition* from its
    equation. Generating the *statements* that usually follow — the nesting, the reduced
    form — is the obvious next step, and the obstacle is that "the reduced form of this
    model" is not a syntactic operation on an equation: it needs the model to be
    *recognised*, which reintroduces the interpretation the design deliberately avoids.
    See `docs/DSL-RFC.md` §11.
-3. **A GNS estimator.** `validation/benchmark/` cannot fit GNS with `θ ≠ 0` and
+4. **A GNS estimator.** `validation/benchmark/` cannot fit GNS with `θ ≠ 0` and
    `λ ≠ 0` because `spreg` has no such estimator; that entry in `SUPPORT` is empty and
    the harness raises rather than substituting something else.
-4. **SAR and SEM reduced forms under `det ≠ 0`.** The GNS ones are already
+5. **SAR and SEM reduced forms under `det ≠ 0`.** The GNS ones are already
    (`gnsDes_iff_reducedForm_of_det_ne_zero`, via `isUnit_iff_det_ne_zero`), and
    `GeoDa.Multiplier` derives the hypothesis from the weights for SAR and SEM; the
    theorems in `GeoDa.Weights` and `GeoDa.Design` still take `IsUnit` directly.
@@ -281,7 +290,8 @@ Already done, for the record: P0.1 `GeoDa/SpatialWeights.lean`, P0.2
 `GeoDa/Multiplier.lean`, P0.3 `GeoDa/ReducedForm.lean`, P1.1 (the moment half)
 `GeoDa/RandomVector.lean`, P2.1 `validation/`, P2.2 `validation/benchmark/`,
 P3.1 `GeoDa/DSL.lean` + `docs/DSL-RFC.md`, P4.1 `AGENTS.md` +
-`.claude/skills/geoda-lean/` + `docs/agent-tasks.md`.
+`.claude/skills/geoda-lean/` + `docs/agent-tasks.md`, P4.2 `GeoDa/HeteroRho.lean` +
+`docs/research-note-heterogeneous-rho.md`.
 
 Same acceptance criteria as always: `./scripts/verify.sh` exits 0, no `sorry`, no
 new axiom, new main theorems pinned in `Smoke.lean` and audited in `Axioms.lean`,
