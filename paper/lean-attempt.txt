@@ -1,4 +1,5 @@
-Representative local build failure (repeated dependency errors omitted):
+Attempt 1, the session that wrote the revision — representative local build failure
+(repeated dependency errors omitted):
 ==> 1/3  lake build
 ✖ [3/13] Building Batteries.CodeAction.Deprecated (43ms)
 trace: .> LEAN_PATH=/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/Cli/.lake/build/lib/lean:/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/batteries/.lake/build/lib/lean:/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/Qq/.lake/build/lib/lean:/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/aesop/.lake/build/lib/lean:/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/proofwidgets/.lake/build/lib/lean:/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/importGraph/.lake/build/lib/lean:/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/plausible/.lake/build/lib/lean:/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/mathlib/.lake/build/lib/lean:/workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/build/lib/lean /root/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lean /workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/batteries/Batteries/CodeAction/Deprecated.lean -o /workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/batteries/.lake/build/lib/lean/Batteries/CodeAction/Deprecated.olean -i /workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/batteries/.lake/build/lib/lean/Batteries/CodeAction/Deprecated.ilean -c /workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/batteries/.lake/build/ir/Batteries/CodeAction/Deprecated.c --setup /workspace/scratch/c2a4fcc7e02e/geoda-lean/.lake/packages/batteries/.lake/build/ir/Batteries/CodeAction/Deprecated.setup.json --json
@@ -12,23 +13,11 @@ error: failed to locate application
 error: Lean exited with code 1
 ✖ [8/13] Building Batteries.Tactic.Lint.Basic (36ms)
 
-Final result: local build failed; no local verification success claimed.
+Final result: that attempt failed, and no verification success was claimed from it.
 
-This failure is environmental — the toolchain's `lean` binary will not launch in
-that execution environment — and it is *not* evidence about the proofs. The
-verification that did run is remote CI on revision `f0ee036`:
-
-  Lean run 38481135562      https://github.com/lixun910/geoda-lean/actions/runs/38481135562
-  Validation run 38481135556 https://github.com/lixun910/geoda-lean/actions/runs/38481135556
-
-Tail of the `./scripts/verify.sh` step in the Lean run:
-
-==> 1/3  lake build
-==> 2/3  no sorry / admit
-==> 3/3  axiom audit
-     ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]
-
-VERIFICATION SUCCEEDED
+The failure is environmental — the toolchain's `lean` binary would not launch in
+that execution environment — and it is *not* evidence about the proofs. It does not
+reappear in attempt 2 below, on the same repository and the same pinned toolchain.
 
 The earlier commit `22ea450` did fail for a real reason, and CI is what caught it
 — a local build would have caught it too, had one been possible:
@@ -36,3 +25,40 @@ The earlier commit `22ea450` did fail for a real reason, and CI is what caught i
 error: GeoDa/Multiplier.lean:215:8: Unknown constant `Matrix.isUnit_transpose.mp`
 error: GeoDa/Multiplier.lean:216:2: No goals to be solved
 error: build failed
+
+----------------------------------------------------------------------------
+
+Attempt 2, 2026-10-13, macOS 26.6.2 on an Apple M2 Max (arm64), Lean 4.35.0 from
+elan. Full log, nothing omitted between the headers:
+
+### lake update 23:10:37
+### lake update exit=0
+### lake exe cache get 23:11:49
+No files to download
+Already decompressed 9031 file(s)
+### cache get exit=0
+### verify.sh 23:11:55
+==> 1/3  lake build
+...
+Build completed successfully (2632 jobs).
+==> 2/3  no sorry / admit
+     ok: no sorry/admit in any proof
+==> 3/3  axiom audit
+...
+     ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]
+
+VERIFICATION SUCCEEDED
+### verify.sh exit=0
+
+Wall clock 23:10:37 to 23:12:28 UTC — 1 m 51 s for all three steps, of which
+`./scripts/verify.sh` is 33 s. The two results the revision adds both appear in the
+audit:
+
+  'GeoDa.isUnit_one_sub_smul_of_colSubstochastic' depends on axioms: [propext, Classical.choice, Quot.sound]
+  'GeoDa.gnsDes_moments_of_rowSubstochastic' depends on axioms: [propext, Classical.choice, Quot.sound]
+
+Remote CI agrees — `Lean` run 38481135562 and `Validation` run 38481135556, on the
+same Lean sources:
+
+  https://github.com/lixun910/geoda-lean/actions/runs/38481135562
+  https://github.com/lixun910/geoda-lean/actions/runs/38481135556

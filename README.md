@@ -8,12 +8,12 @@ standardization, islands) those models are stated over.
 
 **Status:** baseline `eb53ae6` records successful verification of 115 audited
 results. The Paper 1 revision adds two results (117 audit entries total), and full
-verification of them has been **observed in CI**: `Lean` run `38481135562` on
-revision `f0ee036` ends `ok: all 117 theorems depend only on [propext,
-Classical.choice, Quot.sound]` then `VERIFICATION SUCCEEDED`. See
-[the validation record](paper/verification.md). Do not treat the baseline
-transcript as evidence for these additions, and do not carry the run past a commit
-that changes a proof or a statement.
+verification of them has been **observed**: locally, `./scripts/verify.sh` exits 0,
+and CI agrees (`Lean` run `38481135562`), both ending `ok: all 117 theorems depend
+only on [propext, Classical.choice, Quot.sound]` then `VERIFICATION SUCCEEDED`. See
+[the validation record](paper/verification.md). Do not treat the baseline transcript
+as evidence for these additions, and do not carry either run past a commit that
+changes a proof or a statement.
 
 ## Contents
 
@@ -553,6 +553,23 @@ Build completed successfully (2631 jobs).
 VERIFICATION SUCCEEDED
 ```
 
+The Paper 1 revision was rerun — locally, and in CI on a different machine — and both
+produce the same output with `all 117 theorems` in place of `all 115`:
+
+```
+$ ./scripts/verify.sh     # macOS 26.6.2, Apple M2 Max, Lean 4.35.0 from elan
+==> 1/3  lake build
+Build completed successfully (2632 jobs).
+==> 2/3  no sorry / admit
+     ok: no sorry/admit in any proof
+==> 3/3  axiom audit
+'GeoDa.isUnit_one_sub_smul_of_colSubstochastic' depends on axioms: [propext, Classical.choice, Quot.sound]
+'GeoDa.gnsDes_moments_of_rowSubstochastic' depends on axioms: [propext, Classical.choice, Quot.sound]
+     ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]
+
+VERIFICATION SUCCEEDED
+```
+
 The historical baseline audit reports only Lean's three standard axioms; none depends on
 `sorryAx`, and no additional axiom is introduced.
 
@@ -572,6 +589,11 @@ commit `22ea450`, so the pass belongs to `f0ee036` and to no earlier commit. The
 runs repeat green on later documentation-only commits (head `37ce61d`, run
 `38481610834`). What breaks the chain is a commit that changes a proof or a
 statement, not a prose edit.
+
+The same revision was verified locally as well, so the CI runs confirm a run rather
+than standing in for one: on macOS 26.6.2 (Apple M2 Max, arm64) with Lean 4.35.0 from
+elan, `lake update` followed by `lake exe cache get` and `./scripts/verify.sh` took
+1 m 51 s in total and the suite exited 0.
 
 `lean-action`'s GitHub build cache is deliberately disabled (`use-github-cache:
 false`). Its save step archives the whole `.lake` tree — Mathlib's oleans included —

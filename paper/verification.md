@@ -22,9 +22,24 @@ Python: 95 passed locally after the tolerance change; `python-tests.txt`.
 Evidence script: ten comparisons passed; maximum absolute error
 `8.881784197001252e-16`; `numerical-evidence.json`.
 
-Lean: **observed to pass on the revision**, in CI rather than locally. The
-verification anchor is `f0ee036a9647e1a1076b8793058133503e64d125` — the last commit
-of this branch that changes a Lean source file. Remote CI ran the full suite on it:
+Lean: **observed to pass**, locally and in CI. The verification anchor is
+`f0ee036a9647e1a1076b8793058133503e64d125` — the last commit of this branch that
+changes a Lean source file. Every run below is on a commit whose Lean sources are
+identical to the anchor's — on the branch head at the time of writing, and on later
+documentation-only commits.
+
+Locally, 2026-10-13, on macOS 26.6.2 (Darwin 25.6.0, Apple M2 Max, arm64) with Lean
+4.35.0 from elan: `./scripts/verify.sh` exits 0 in 33 s, its three steps reporting
+
+```
+==> 1/3  lake build        Build completed successfully (2632 jobs).
+==> 2/3  no sorry / admit  ok: no sorry/admit in any proof
+==> 3/3  axiom audit       ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]
+VERIFICATION SUCCEEDED
+```
+
+That is the load-bearing evidence the repository asks for; the CI runs below are
+the second opinion, on a different machine and a different architecture. In CI:
 
 - `Lean` run `38481135562`, 2026-10-13, 1 m 58 s, green. Its
   `./scripts/verify.sh` step ends
@@ -50,12 +65,12 @@ enumerated per prose edit — that would make the anchor chase a moving branch,
 which is the thing item 4 of *Before submission* warns against. The anchor moves
 only when a proof or a statement moves, and then the runs above stop applying.
 
-No local verification is claimed. Lean 4.35.0 is installed on the local machine,
-but the executable reports `failed to locate application` in that execution
-environment, so a local `./scripts/verify.sh` never ran; `lean-attempt.txt` keeps
-the representative failure. CI is a second opinion on a different machine, not a
-substitute for the local suite — and at this revision it is the only evidence that
-a full `./scripts/verify.sh` has exited 0.
+`lean-attempt.txt` keeps an earlier local failure, from the session that wrote the
+revision: Lean 4.35.0 installed, but the executable reporting `failed to locate
+application`. That was an environment fault and not a gap in the proofs, and it
+does not reproduce — the local run above is the same repository on the same pinned
+toolchain. It is kept rather than deleted because a record that only ever shows the
+successful attempt is the one that is not worth reading.
 
 The user authorized uploading this draft on 2026-10-13.
 
@@ -78,10 +93,10 @@ package set for this run.
 
 ## Before submission
 
-1. Observe passing full proof verification for the final code revision. Satisfied
-   for `f0ee036` (CI runs `38481135562`, `38481135556`) and for the documentation-only
-   commits after it. It must be observed again, on the new revision, for any commit
-   that changes a proof or a statement.
+1. Observe passing full proof verification for the final code revision. Satisfied:
+   local `./scripts/verify.sh` exits 0, and CI runs `38481135562` / `38481135556`
+   agree. Holds for `f0ee036` and for the documentation-only commits after it. A
+   commit that changes a proof or a statement needs the observation repeated.
 2. Confirm author list, affiliations, contribution disclosure, and target venue.
 3. Broaden the related-work comparison; obtain an independent domain review of
    `source-map.md` and the equation/probability distinction.

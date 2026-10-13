@@ -6,7 +6,8 @@ forms under an invertibility assumption.
 
 **Status:** baseline `eb53ae6` records 115 verified audit entries. The Paper 1
 revision has 117 entries, and full verification of its two additions has now been
-observed: CI `Lean` run `38481135562` on revision `f0ee036` ends
+observed both locally (`./scripts/verify.sh` exits 0 on macOS, 33 s in the suite)
+and in CI (`Lean` run `38481135562`), both ending
 `ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]`
 then `VERIFICATION SUCCEEDED`. See `paper/verification.md`. `f0ee036` is the
 verification anchor — the last commit there that changes a Lean source — and the
@@ -88,6 +89,17 @@ lake exe cache get   # downloads the prebuilt Mathlib oleans (~5-7 GB)
 Budget ~10 GB of free disk for `.lake` (the toolchain is another ~3 GB under
 `~/.elan`). If space is short, `lake exe cache get <module name>` fetches only
 that module and its transitive imports — see the gotchas below.
+
+Measured on 2026-10-13 in a fresh worktree with no `.lake` at all: the whole sequence
+above is **1 m 51 s**, of which `./scripts/verify.sh` is 33 s. Two things make it that
+quick, and both surprise people:
+
+* `lake update` fetches and decompresses the Mathlib cache itself, so the explicit
+  `lake exe cache get` line then reports `No files to download` /
+  `Already decompressed 9031 file(s)`. Keep it anyway — it is what makes the step
+  idempotent when `lake update` did not do it.
+* elan's bin directory is not necessarily on `PATH`: prefix with
+  `export PATH="$HOME/.elan/bin:$PATH"` if `which lake` comes back empty.
 
 The second CI workflow, `Validation` (`.github/workflows/validation.yml`), installs
 `validation/requirements.txt`, runs `python -m pytest validation`, and then runs the
@@ -325,8 +337,9 @@ with `EXPECTED_COUNT` in `scripts/verify.sh` bumped to match.
   `GeoDa/Multiplier.lean:215:8: Unknown constant Matrix.isUnit_transpose.mp`, so
   the pass belongs to `f0ee036` and to no earlier commit. Later documentation-only
   commits are green too (head `37ce61d`, `Lean` run `38481610834`); `f0ee036` is
-  simply the anchor, the last commit there that changes a Lean source. Details in
-  `paper/verification.md`.
+  simply the anchor, the last commit there that changes a Lean source. The revision
+  is verified locally too — `./scripts/verify.sh` exits 0 on macOS — so CI confirms
+  a run rather than standing in for one. Details in `paper/verification.md`.
 * **The GitHub build cache is off on purpose** (`use-github-cache: false` in
   `.github/workflows/lean.yml`). `lean-action`'s cache save archives the whole
   `.lake` tree — Mathlib's ~5.5 GB of oleans included — by piping `tar` into
