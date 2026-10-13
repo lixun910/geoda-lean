@@ -176,4 +176,35 @@ theorem semMat_iff_reducedForm_of_rowSubstochastic (W : WMat n) (hW : Nonneg W)
   · rintro ⟨hu, hy⟩
     exact ⟨mulVec_eq_of_eq_mulVec hR hu, by rw [hy, ← hu]⟩
 
+/-! ### Column-substochastic weights, and the transposed multiplier
+
+`GeoDa.RowSubstochastic` is the hypothesis that makes `W` an `ℓ∞` contraction and so
+makes `1 - ρW` invertible. The dual normalization — **column** sums at most one, as in a
+column-standardized weights matrix — is a different condition, and it does not make `W`
+itself a contraction. What it makes a contraction is `Wᵀ`.
+
+The transposed multiplier is not an ornamental case: it is the one that appears on the
+right of `Cov(Aξ) = A Cov(ξ) Aᵀ` in `GeoDa.RandomVector`. So it is worth having, and it
+comes out of the row-substochastic theorem by transposition rather than by repeating the
+`ℓ∞` estimate for columns. -/
+
+/-- The sum of the entries of column `j`. -/
+def colSum (W : WMat n) (j : Fin n) : ℝ := ∑ i, W i j
+
+/-- **Column substochasticity:** every column sums to at most `1`. -/
+def ColSubstochastic (W : WMat n) : Prop := ∀ j, colSum W j ≤ 1
+
+/-- The row sums of the transpose are the column sums of the original. -/
+theorem rowSum_transpose (W : WMat n) (j : Fin n) : rowSum Wᵀ j = colSum W j := rfl
+
+/-- **The transposed multiplier is invertible.** For nonnegative column-substochastic
+`W` and `|ρ| < 1`, `1 - ρ • Wᵀ` is a unit.
+
+Proved by transposition: `Wᵀ` is nonnegative and row-substochastic, so
+`isUnit_one_sub_smul_of_rowSubstochastic` applies to it unchanged. Repeating the `ℓ∞`
+estimate here would prove the same theorem twice. -/
+theorem isUnit_one_sub_smul_transpose_of_colSubstochastic (W : WMat n) (hW : Nonneg W)
+    (h1 : ColSubstochastic W) (ρ : ℝ) (hρ : |ρ| < 1) : IsUnit (1 - ρ • Wᵀ) :=
+  isUnit_one_sub_smul_of_rowSubstochastic Wᵀ (fun i j => hW j i) (fun i => h1 i) ρ hρ
+
 end GeoDa

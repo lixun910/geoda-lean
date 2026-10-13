@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
 import GeoDa
+import GeoDaTest.AgentTasks
 import GeoDaTest.DSL
 
 /-!
@@ -113,3 +114,12 @@ user-introduced axiom.
 #print axioms GeoDaTest.mySEM_eq_SEMDes
 #print axioms GeoDaTest.myGNS_eq_GNSDes
 #print axioms GeoDaTest.mySLX_iff
+
+-- GeoDa.Nesting and GeoDa.Multiplier: SLX, and the transposed multiplier
+#print axioms GeoDa.gnsDes_iff_slxDes
+#print axioms GeoDa.rowSum_transpose
+#print axioms GeoDa.isUnit_one_sub_smul_transpose_of_colSubstochastic
+
+-- GeoDaTest.AgentTasks: the refuted conjectures of the agent-loop benchmark
+#print axioms GeoDaTest.nonneg_alone_is_not_enough
+#print axioms GeoDaTest.rowSubstochastic_alone_is_not_enough

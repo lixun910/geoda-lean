@@ -7,7 +7,7 @@ assumption, and the spatial weights predicates (nonnegativity, row
 standardization, islands) those models are stated over.
 
 **Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 87 main
+that no proof uses `sorry` or `admit`, and audits the axioms of all 92 main
 theorems (see [Verification](#verification) for the exact toolchain, command and
 observed output).
 
@@ -22,14 +22,19 @@ GeoDa/ReducedForm.lean    the full GNS reduced form, eliminating u and y togethe
 GeoDa/Multiplier.lean     invertibility of 1 - ρW from the weights themselves
 GeoDa/RandomVector.lean   probability layer: expectation, covariance, model moments
 GeoDa/DSL.lean            a `spatial_model` command: a model from its equation alone
+GeoDa/Nesting.lean        SLX, and GNS with both spatial coefficients switched off
 GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
 GeoDaTest/DSL.lean        the DSL's tests: rfl-equivalence and pinned rejections
+GeoDaTest/AgentTasks.lean the agent-loop benchmark, including the refuted conjectures
 GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
 scripts/verify.sh         the verification suite
 validation/               numerical cross-checks against NumPy, SciPy and PySAL spreg
 validation/benchmark/     Monte Carlo bias/RMSE/coverage study of spreg estimators
 docs/DSL-RFC.md           the design of the `spatial_model` DSL
+docs/agent-tasks.md       the agent-loop benchmark: three tasks and what they returned
+AGENTS.md                 working notes for agents; points at CLAUDE.md
+.claude/skills/geoda-lean/ a reusable Skill: the conventions and the protocol
 .github/workflows/        CI: the verification suite, and the numerical cross-checks
 ```
 
@@ -392,6 +397,28 @@ generated `def`s for SAR, SDM, SEM and GNS are proved equal to `SARDes`, `SDMDes
 `SEMDes` and `GNSDes` by **`rfl`** — the same function up to definitional equality. A
 fifth model, SLX, has no counterpart in the repository and costs one equation.
 
+### The agent loop (`AGENTS.md`, `docs/agent-tasks.md`)
+
+The repository is set up to be driven by an automated agent, and to hold one to the same
+standard a human is held to. `AGENTS.md` states the task protocol and the fail-closed
+rules; `.claude/skills/geoda-lean/SKILL.md` is the reusable Skill carrying the
+conventions; `docs/agent-tasks.md` records three benchmark tasks run end to end.
+
+The third of those is the one that matters. It states a conjecture that is **false** —
+that every *nonnegative* weights matrix gives an invertible spatial multiplier for
+`|ρ| < 1`, a natural over-generalization of `isUnit_one_sub_smul_of_rowSubstochastic`. The
+loop's job was not to find a proof. It was to report, correctly, that there is none — and
+the refutation is not a remark in a log file but two theorems,
+`GeoDaTest.nonneg_alone_is_not_enough` and
+`GeoDaTest.rowSubstochastic_alone_is_not_enough`, proved from counterexamples that were
+already in the test suite.
+
+What the loop demonstrates is a claim about the *process*: that a hypothesis can be driven
+to a kernel-checked theorem through a fixed protocol, and that a false claim is reported
+as false rather than replaced by a nearby true one. It does not demonstrate that the
+theorems are the right ones, that the models are the models the literature means, or that
+any estimator is consistent. No statement in this repository is claimed to be novel.
+
 ## Scope and non-claims
 
 This is a formalization of *model equations*, plus the first two moments of the
@@ -436,13 +463,13 @@ and `lake-manifest.json`.
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
-Build completed successfully (2625 jobs).
+Build completed successfully (2626 jobs).
 ==> 2/3  no sorry / admit
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
 … (56 theorems, all on the same list)
-     ok: all 87 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 92 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```

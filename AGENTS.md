@@ -1,236 +1,92 @@
-# Working notes for this repository
+# Working notes for agents
 
-Lean 4 + Mathlib formalization of the equation-level nesting of the General
-Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
-forms under an invertibility assumption.
+This file is for automated agents (Codex, Claude, or anything else) working on this
+repository. **`CLAUDE.md` is the canonical working notes and this file deliberately does
+not repeat it** — an earlier revision was a copy, and it drifted out of date within two
+pull requests. Read `CLAUDE.md` first: layout, the verification command, the hard rules,
+the theorem-statement discipline, and the environment gotchas that have already cost
+hours.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 56 theorems.
+What follows is only what is *specific to working as an agent here*: the task protocol,
+the failure modes that matter, and the loop this repository is set up to be driven
+through. A worked record of three benchmark tasks is in `docs/agent-tasks.md`.
 
-## Layout
-
-```
-GeoDa.lean             root module (imports all four libraries)
-GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
-GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
-GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
-GeoDa/ReducedForm.lean full GNS reduced form: u = B⁻¹ε, y = A⁻¹(Xβ + WXθ + B⁻¹ε)
-GeoDa/SpatialWeights.lean  weights predicates (Nonneg, RowStochastic, Island, …)
-                       and row normalization; no global assumptions added
-GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
-GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
-scripts/verify.sh      build + no-sorry + axiom audit
-docs/original-GNS.lean the pre-existing draft, kept verbatim (see "Provenance")
-README.md              the user-facing write-up; keep it in step with the code
-```
-
-## How to verify — always run this before claiming anything works
+## The one command that decides everything
 
 ```
 ./scripts/verify.sh
 ```
 
-It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-56 main theorems in `GeoDaTest/Axioms.lean` depend only on
-`[propext, Classical.choice, Quot.sound]`. Expected tail:
+It builds every target, greps the sources for `sorry`/`admit`, and audits the axiom
+footprint of every main theorem. Exits non-zero on the first failure.
 
-```
-     ok: all 56 theorems depend only on [propext, Classical.choice, Quot.sound]
-VERIFICATION SUCCEEDED
-```
+**Never report a result as verified without a passing run of this command, and never
+describe a result you have not run it on.** If a proof will not close, say so. This
+repository exists to make that distinction sharp; an agent that blurs it is worse than
+useless here.
 
-Toolchain: Lean `leanprover/lean4:v4.35.0`, Mathlib `v4.35.0`
-(`rev 56a005855ea17e0b0958f73ec801ae140b0a1679`), pinned in `lean-toolchain` and
-`lake-manifest.json`. Do not bump these without re-running the suite.
+## Task protocol
 
-### First build on a fresh machine
+1. **Natural language → formal statement.** Write down what is to be proved, in Lean, in
+   a file that already builds. Get the *statement* right before attempting the proof,
+   and state every hypothesis explicitly. Do not widen a hypothesis to make a proof go
+   through — that is the same error as a wrong proof, and harder to notice.
+2. **Look for the existing lemma first.** The machinery is probably already here:
+   `GeoDa.mulVec_eq_iff`, `GeoDa.one_sub_smul_mulVec_eq_iff`, and the whole of
+   `GeoDa.SpatialWeights` exist to be reused. Re-proving an estimate is how the two
+   versions drift apart.
+3. **Attempt the proof.** `lake build` early and often. `lake env lean <file>` is useful
+   for a scratch file, but it does **not** rebuild what `<file>` imports — see the
+   gotcha in `CLAUDE.md`.
+4. **Read the compiler, do not guess.** Lean's errors name the metavariables. Fix the
+   actual failure rather than adding `simp` until the goal disappears.
+5. **Record the outcome honestly: verified, refuted, or unresolved.** All three are
+   results. "Unresolved" is not a failure of the loop; claiming "verified" for an
+   unresolved claim is.
+6. **Pin and audit.** New main theorems go in `GeoDaTest/Smoke.lean` (a `#check` pin) and
+   `GeoDaTest/Axioms.lean` (an `#print axioms`), and `EXPECTED_COUNT` in
+   `scripts/verify.sh` is bumped to match. Never change an existing theorem's statement
+   or an existing pin to make something compile: an existing statement changing *is* the
+   failure being guarded against.
 
-If `lean`/`lake` are absent, install elan (it honours `lean-toolchain`, so it
-fetches v4.35.0 automatically):
+## Fail closed
 
-```
-curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
-exec "$HOME/.elan/bin/lake" --version
-```
+An agent working here must fail closed on all of the following. Each is enforced by
+`./scripts/verify.sh` unless noted.
 
-Then let lake materialise Mathlib and pull the prebuilt oleans before building —
-compiling Mathlib from source takes hours, the cache takes minutes:
+* **No `sorry`, no `admit`, no new `axiom`.** Enforced.
+* **No statement changes without review.** Diffing `GeoDaTest/Smoke.lean` is the check;
+  a changed `#check` line in a PR means a theorem statement moved. Not machine-enforced —
+  a reviewer's job.
+* **No silently strengthened (or weakened) hypotheses.** If the proof needs a hypothesis
+  the statement does not have, the *statement* is what changes, visibly, or the task is
+  reported unresolved.
+* **No claim of verification from a partial run.** `lake build` succeeding is not the
+  verification; the axiom audit is part of it, and a red CI run is a red result.
+* **No "it works in Python".** `validation/` and `validation/benchmark/` are numerical
+  cross-checks and an empirical study of `spreg` estimators. They verify nothing, and are
+  explicitly not evidence for any theorem. Do not cite them as such.
+* **No novel mathematics claimed.** Nothing in this repository claims to be new, and its
+  scope notes say so. Keep it that way.
 
-```
-lake update          # materialises .lake/packages from lake-manifest.json
-lake exe cache get   # downloads the prebuilt Mathlib oleans (~5-7 GB)
-./scripts/verify.sh
-```
+## Sandboxed workflow
 
-Budget ~10 GB of free disk for `.lake` (the toolchain is another ~3 GB under
-`~/.elan`). If space is short, `lake exe cache get <module name>` fetches only
-that module and its transitive imports — see the gotchas below.
+* Work on a feature branch, never on `main`. The app's worktree setup already does this;
+  keep the branch name tied to the issue.
+* One issue per branch and per pull request.
+* A pull request description must list every assumption **added or modified**, every
+  theorem statement that moved, and the exact `./scripts/verify.sh` tail as evidence.
+  If nothing was added or moved, say that too — it is a fact a reviewer wants.
+* Do not merge a pull request whose CI has not been observed to pass.
 
-## Hard rules
+## Limits of the loop
 
-* **No `sorry` and no `admit`**, ever, and no new `axiom`. `scripts/verify.sh`
-  enforces both. If a proof will not close, say so rather than papering over it.
-* **Never describe a proof as verified without a passing `lake build`.** The
-  original draft of `GeoDa/GNS.lean` was labelled a proof but had never been
-  compiled and did not parse.
-* **Theorem statements are load-bearing.** `GeoDaTest/Smoke.lean` pins every
-  signature with `#check` on purpose: changing a statement should be a
-  deliberate edit, and the `#check` block updated with it. If you add a theorem
-  that belongs to the "main results", add it to both `Smoke.lean` and
-  `Axioms.lean` and bump `EXPECTED_COUNT` in `scripts/verify.sh`.
-* **Targeted imports, not `import Mathlib`.** The project imports the specific
-  Mathlib modules it needs (see the header of `GeoDa/GNS.lean`). `import Mathlib`
-  pulls ~8600 modules and makes the build and CI cache enormous.
+The loop demonstrates that a claim can be driven from a natural-language hypothesis to a
+kernel-checked theorem, and that it fails loudly when it cannot. It does **not**
+demonstrate that the theorems are the right ones, that the model is the model the
+literature means, or that any estimator is consistent. `docs/agent-tasks.md` records both
+a task that succeeded and a conjecture that the loop correctly *refused* to verify.
 
-## Environment gotchas that have already cost hours
-
-* **First build needs the Mathlib cache (5–7 GB).** If the disk is tight, fetch
-  only the closure of what you import — `lake exe cache get <module name>` gets
-  that module *and everything it imports transitively* — instead of the whole
-  cache. Measure the closure first by parsing `import` lines out of the Mathlib
-  sources.
-* **Do not delete `.git` inside `.lake/packages/*`.** It saves only ~60 MB and
-  lake then decides the dependency is not materialized, re-clones it, and fails
-  on the existing working tree. Freeing the toolchain's static libs
-  (`lib/lean/lib{Lean,Std,Init,Lake}.a`) is safe instead. Deleting
-  `.lake/build/ir` is *not* safe — lake treats missing outputs as stale and
-  rebuilds.
-* **`λ` can never be an identifier in Lean** — it is the lambda token. The draft
-  bound the disturbance coefficient as `λ` and therefore could not be parsed;
-  it is `lam` throughout now.
-* **`*ᵥ` is scoped notation.** Files using it need `open scoped Matrix`, and the
-  lemma names (`sub_mulVec`, `one_mulVec`, `mulVec_injective`, `mulVec_zero`, …)
-  need `open Matrix`.
-* **Mixing a `module` file with a non-`module` file is a hard error**
-  ("cannot import non-`module` X from `module`"). This project is consistently
-  *non*-module: plain `import`. Expect a benign
-  "designed for use with the module system" warning per Mathlib import.
-* **`simp` is not reliable here.** It sometimes refuses to close a goal that
-  prints as `X = X`, and after `simp [GNS, SAR]` the nesting goals land in the
-  shape `(P ∧ Q) ↔ (R ∧ Q)`, which it will not finish. The existing proofs are
-  written to be independent of `simp`'s normal form: `calc` plus `abel` (after
-  `simp only [zero_smul]`) for vector equations.
-* **For `IsUnit.unit`, `rw [← h.unit_spec]` fails** with "motive is not type
-  correct" (dependent projection). Use `simpa only [h.unit_spec] using
-  Units.inv_mul h.unit` and friends, which normalises the *type* instead.
-* **`Matrix.mulVec_mulVec` reads `M *ᵥ N *ᵥ v = (M * N) *ᵥ v`** — the forward
-  direction is the one that *combines* two applications. Using `←` there is a
-  familiar mistake. Its **explicit argument order is `(v, M, N)`, vector first**:
-  `mulVec_mulVec θ W X : W *ᵥ X *ᵥ θ = (W * X) *ᵥ θ`. Writing `mulVec_mulVec W X θ`
-  silently unifies `W` with the *vector* slot and fails with a type mismatch whose
-  displayed type looks like your goal with the arguments rotated — read the
-  metavariable positions, not the shape.
-* **`Mathlib/LinearAlgebra/Matrix/Basic.lean` does not exist in v4.35** (split
-  into `Defs.lean`, `Module.lean`, …). `Mathlib.Data.Real.Basic` is deprecated in
-  favour of `Mathlib.Basic.Real.Basic`.
-* **Do not `rw [h]` a *self-referential* hypothesis into a goal that mentions both
-  sides.** For `h : v = c • (W *ᵥ v) + w`, `intro h; rw [h]; abel` substitutes `v`
-  *everywhere*, including on the right, and leaves a nested mess that `abel` cannot
-  close. Use `calc` instead — `calc v = c • (W *ᵥ v) + w := h; _ = … := by abel`.
-  Rewriting a hypothesis *at* another hypothesis (`rw [hu] at hy`) is fine; it is
-  the goal-level rewrite that bites.
-* **`Matrix.mulVec_one` is stated under
-  `set_option backward.isDefEq.respectTransparency false`.** So `(W *ᵥ 1) i` is
-  *not* definitionally `W i ⬝ᵥ 1` in an ordinary `exact`/`simpa`/`rw`, and
-  `Matrix.mulVec_one` itself will not unfold `(W *ᵥ 1) i` for you. Use
-  **`Matrix.mulVec_apply_eq_sum : (M *ᵥ v) i = ∑ j, M i j * v j`**, which is
-  `rfl`-proved — that is the right entry point for any row-sum argument.
-* **`dotProduct` and `dotProduct_one` are *root-level* names**, not
-  `Matrix.dotProduct` / `Matrix.dotProduct_one`: `Mathlib/Data/Matrix/Mul.lean`
-  defines them in a `section` *outside* `namespace Matrix` (that file does
-  `open Matrix` rather than nesting). The `⬝ᵥ` notation is root-level too. There
-  is also no `Matrix.rowSum`, so `GeoDa.rowSum` is free.
-* **A file that imports `GeoDa.ReducedForm` also gains a root-level `normalize`,**
-  so a bare `normalize` in `GeoDaTest/Smoke.lean` becomes ambiguous with
-  `GeoDa.normalize` once both branches are present. Write `GeoDa.normalize`
-  explicitly in tests.
-* Passing a hypothesis like `hu : u = … u …` to `simp` loops (recursion depth).
-
-## Provenance — keep this honest
-
-Every proof here was produced by Codex (Codex desktop), **not** by Codex. The
-project's stated first milestone is for *Codex* to complete the GNS →
-SAR/SEM/SDM formalization independently, so this repository currently serves as a
-reference/answer key rather than as evidence for that milestone. `README.md`
-says so and `docs/original-GNS.lean` preserves the unverified draft verbatim.
-Do not quietly present this work as Codex's, and do not delete that note.
-
-## Mathematical scope — do not overclaim
-
-* These are statements about *model equations*. Nothing here establishes
-  identifiability, estimator consistency, asymptotic theory or numerical
-  correctness, and nothing here is claimed to be novel.
-* `W` is an arbitrary real matrix in `GNS.lean`/`Weights.lean`/`Design.lean`:
-  row standardization, symmetry and non-negativity are **not** assumed.
-  `SpatialWeights.lean` names those regularities as predicates (`Nonneg`,
-  `RowStochastic`, `RowSubstochastic`, `Island`, `ZeroDiag`) so they can be
-  *hypotheses*, but they are still not global assumptions, and even there
-  symmetry is never assumed. Row standardization does not imply a zero diagonal
-  and a zero diagonal does not imply row standardization; both directions are
-  proved, so do not silently assume either. Islands are handled by a totalized
-  inverse (`(0 : ℝ)⁻¹ = 0`), not by a side condition on `normalize`.
-* **SAR and SEM are not observationally equivalent in general.**
-  `reducedForm_eq_iff_inverse_eq_one` shows the reduced forms agree for all
-  `(Xβ, ε)` exactly when the inverse matrix is the identity (i.e. `ρW = λW = 0`).
-  The defensible equivalence statement, and the one formalized, is
-  `sem_reducedForm_eq_sar_reducedForm_of_filtered`: a SEM equals a SAR whose
-  regressors have been spatially filtered to `(1 - λW)Xβ`. When writing this up,
-  use that formulation.
-
-## Next task
-
-The previous "next task" — forming `Xβ` and `WXθ` from a design matrix instead of
-taking them as supplied vectors — is **done**: see `GeoDa/Design.lean`. It
-introduces `X : Matrix (Fin n) (Fin k) ℝ` with `β θ : Fin k → ℝ`, defines
-`GNSDes`/`SARDes`/`SEMDes`/`SDMDes` with `xb := X *ᵥ β` and `wxθ := (W * X) *ᵥ θ`,
-and restates the nesting, linear-system, reduced-form and filtered-equivalence
-results there. `GeoDa/GNS.lean` and `GeoDa/Weights.lean` are untouched, so the
-audit count only grew (12 → 25).
-
-What is left, roughly in order of value:
-
-1. **Reduced forms under `det ≠ 0`.** The hypothesis today is `IsUnit (1 - ρ • W)`;
-   connect it to `Matrix.isUnit_iff_isUnit_det` so the statements read in terms of
-   the determinant, which is what an implementation actually checks.
-2. **Invertibility of `1 - ρW` for `|ρ| < 1`** (Neumann series / Gershgorin
-   radius). The *row-sum* half is now in place in `GeoDa/SpatialWeights.lean`:
-   `mulVec_one_apply`, `rowStochastic_iff_mulVec_one` give `W *ᵥ 1 = 1` for
-   row-stochastic `W`, and `RowSubstochastic` is the hypothesis the operator-norm
-   bound wants.
-3. **A GNS-level reduced form.** Eliminate `u` and then `y` in GNS itself, under
-   invertibility of both `1 - ρW` and `1 - λW`. — **done**: see
-   `GeoDa/ReducedForm.lean`. `gnsDes_iff_reducedForm` and its explicit-inverse
-   and determinant variants give `u = B⁻¹ε`, `y = A⁻¹(Xβ + WXθ + B⁻¹ε)` as an
-   *iff* against `GNSDes`, keeping both equations; `sdmDes_iff_reducedForm` is
-   the `λ = 0` restriction. The hypothesis is still *stated*, not derived.
-4. **Numerical cross-checks against PySAL `spreg`.** The formal objects now
-   coincide with what `spreg` computes, but nothing has been compared against a
-   real implementation yet.
-
-Same acceptance criteria as always: `./scripts/verify.sh` exits 0, no `sorry`, no
-new axiom, new main theorems pinned in `Smoke.lean` and audited in `Axioms.lean`,
-with `EXPECTED_COUNT` in `scripts/verify.sh` bumped to match.
-
-## Open items
-
-* **CI runs, but it starts on fewer events than you would guess.** The workflow
-  triggers only on `push` to `main`/`master`, on `pull_request` and on
-  `workflow_dispatch` — pushing a feature branch starts *nothing*, so use
-  `gh workflow run lean.yml --ref <branch>` to exercise CI on a branch. The one
-  annotation left is a Node.js 20 deprecation notice on `actions/checkout@v4`.
-* **The GitHub build cache is off on purpose** (`use-github-cache: false` in
-  `.github/workflows/lean.yml`). `lean-action`'s cache save archives the whole
-  `.lake` tree — Mathlib's ~5.5 GB of oleans included — by piping `tar` into
-  `zstdmt`, and on an `ubuntu-latest` runner that runs the disk out of space. It had
-  never once produced a usable entry (every run logs
-  `Cache not found for input keys: lake-Linux-X64-...`), and on 2026-10-13 it failed a
-  `main` run outright with
-  `zstd: error 70 : Write error : cannot write block : No space left on device`,
-  which **skipped `./scripts/verify.sh` entirely** — the run was red even though
-  `lake build` had just printed `Build completed successfully`. Re-enable it and that
-  comes back. Little is lost: the Mathlib oleans come from `lake exe cache get`
-  (which the action still runs, ~2.5 min), and only this project's own modules are
-  left to compile.
-* Local `./scripts/verify.sh` is the load-bearing evidence; CI is a second opinion
-  on a different machine.
-* The README, this file and the sources are kept in step; when the theorems change,
-  change all three together.
+`GeoDa/DSL.lean` exists to remove the boilerplate between steps 1 and 3: a model's
+definition can be generated from its equation alone by `spatial_model`. Its design, and
+the trust question it does not have, are in `docs/DSL-RFC.md`.
