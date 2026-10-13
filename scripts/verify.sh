@@ -12,7 +12,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 EXPECTED_AXIOMS='[propext, Classical.choice, Quot.sound]'
-EXPECTED_COUNT=82
+EXPECTED_COUNT=87
 
 echo "==> 1/3  lake build"
 lake build

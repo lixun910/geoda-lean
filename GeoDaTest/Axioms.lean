@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
 import GeoDa
+import GeoDaTest.DSL
 
 /-!
 # Axiom audit
@@ -105,3 +106,10 @@ user-introduced axiom.
 #print axioms GeoDa.sar_moments
 #print axioms GeoDa.sem_moments
 #print axioms GeoDa.gns_moments
+
+-- GeoDaTest.DSL: the `spatial_model` DSL agrees with the hand-written specifications
+#print axioms GeoDaTest.mySAR_eq_SARDes
+#print axioms GeoDaTest.mySDM_eq_SDMDes
+#print axioms GeoDaTest.mySEM_eq_SEMDes
+#print axioms GeoDaTest.myGNS_eq_GNSDes
+#print axioms GeoDaTest.mySLX_iff

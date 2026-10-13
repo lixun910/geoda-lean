@@ -7,7 +7,7 @@ assumption, and the spatial weights predicates (nonnegativity, row
 standardization, islands) those models are stated over.
 
 **Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 82 main
+that no proof uses `sorry` or `admit`, and audits the axioms of all 87 main
 theorems (see [Verification](#verification) for the exact toolchain, command and
 observed output).
 
@@ -21,12 +21,15 @@ GeoDa/Design.lean         design matrix X; Xβ and WXθ formed by matrix product
 GeoDa/ReducedForm.lean    the full GNS reduced form, eliminating u and y together
 GeoDa/Multiplier.lean     invertibility of 1 - ρW from the weights themselves
 GeoDa/RandomVector.lean   probability layer: expectation, covariance, model moments
+GeoDa/DSL.lean            a `spatial_model` command: a model from its equation alone
 GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
+GeoDaTest/DSL.lean        the DSL's tests: rfl-equivalence and pinned rejections
 GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
 scripts/verify.sh         the verification suite
 validation/               numerical cross-checks against NumPy, SciPy and PySAL spreg
 validation/benchmark/     Monte Carlo bias/RMSE/coverage study of spreg estimators
+docs/DSL-RFC.md           the design of the `spatial_model` DSL
 .github/workflows/        CI: the verification suite, and the numerical cross-checks
 ```
 
@@ -350,6 +353,45 @@ absent with the reason rather than computed from a misaligned error.
 The CI-scale smoke run executes in CI; the `--extended` grid is opt-in and its outputs
 are not committed.
 
+### A DSL for model specifications (`GeoDa.DSL`)
+
+Adding a model used to mean writing the equation out again with its binder list. The
+`spatial_model` command writes the `def` for you from the equation alone:
+
+```
+spatial_model MySLX {n k : ℕ} (W : WMat n) (X : DMat n k) (y : Vec n) (β : Vec k)
+    (θ : Vec k) (ε : Vec n) : y = X *ᵥ β + (W * X) *ᵥ θ + ε
+```
+
+generates an ordinary `def`, which `#print` shows, which `#check` pins, and about which
+anything can be proved as usual.
+
+It is Lean-native, and that is the design decision, argued in
+[`docs/DSL-RFC.md`](docs/DSL-RFC.md): the equation is elaborated by Lean's own
+elaborator, so there is no compiler to trust and no trust boundary to argue about. The
+alternative — an external specification language plus a source generator — would make
+the generator a trusted component, and would have to be *checked* anyway, at which
+point it has bought a second language for nothing.
+
+Two failures that Lean would otherwise let through silently are rejected instead.
+Because the generated definition is elaborated under `autoImplicit false`, a coefficient
+that appears in the equation but not in the binder list is an error rather than a
+silently introduced implicit parameter — which would have produced a *different* model
+than the one written. And the declared slot types are inspected for dimensional
+consistency, which catches a slot whose dimension the equation never pins down and
+Lean's own type checker therefore cannot see.
+
+What it does **not** do is generate theorems or check the mathematics. It cannot: whether
+the equation is the model you meant is not a formal property. Nor does it check that `W`
+is row-standardized, nonnegative or connected — those are the predicates of
+`GeoDa.SpatialWeights`, to be required by the theorems that need them rather than by the
+syntax that names a model.
+
+The equivalence to the hand-written specifications is mechanical, not argued: the
+generated `def`s for SAR, SDM, SEM and GNS are proved equal to `SARDes`, `SDMDes`,
+`SEMDes` and `GNSDes` by **`rfl`** — the same function up to definitional equality. A
+fifth model, SLX, has no counterpart in the repository and costs one equation.
+
 ## Scope and non-claims
 
 This is a formalization of *model equations*, plus the first two moments of the
@@ -394,13 +436,13 @@ and `lake-manifest.json`.
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
-Build completed successfully (2623 jobs).
+Build completed successfully (2625 jobs).
 ==> 2/3  no sorry / admit
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
 … (56 theorems, all on the same list)
-     ok: all 82 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 87 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```
