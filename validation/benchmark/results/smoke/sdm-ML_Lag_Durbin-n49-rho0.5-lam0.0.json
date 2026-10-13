@@ -1,0 +1,86 @@
+{
+  "cell": {
+    "beta": [
+      1.0,
+      1.0,
+      -0.5
+    ],
+    "estimator": "ML_Lag_Durbin",
+    "islands": false,
+    "k": 3,
+    "lam": 0.0,
+    "model": "sdm",
+    "n": 49,
+    "n_side": 7,
+    "reps": 50,
+    "rho": 0.5,
+    "seed_base": 20261013,
+    "theta": 0.6
+  },
+  "estimator": {
+    "callable": "spreg.ML_Lag",
+    "layout": [
+      "beta",
+      "theta",
+      "rho"
+    ],
+    "name": "ML_Lag_Durbin",
+    "no_se": [],
+    "note": "ML_Lag applied to [X, WX\u0303]; this is SDM, not a substitute for it. X\u0303 excludes any constant column, because W\u00b71 = 1 under row standardization makes the lagged intercept collinear with the intercept: only \u03b2_0 + \u03b8_0 is identified"
+  },
+  "failures": 0,
+  "label": "sdm-ML_Lag_Durbin-n49-rho0.5-lam0.0",
+  "names": [
+    "beta0",
+    "beta1",
+    "beta2",
+    "theta0",
+    "theta1",
+    "rho"
+  ],
+  "reps_requested": 50,
+  "reps_used": 50,
+  "rows": [
+    {
+      "bias": 0.04038257362889951,
+      "coverage": 0.94,
+      "mean_std_err": 0.15291965962142606,
+      "n_used": 50,
+      "parameter": "beta1",
+      "rmse": 0.16106407830203257,
+      "se_reported": true,
+      "true_value": 1.0
+    },
+    {
+      "bias": 0.007553872882854864,
+      "coverage": 0.86,
+      "mean_std_err": 0.1456056971601123,
+      "n_used": 50,
+      "parameter": "beta2",
+      "rmse": 0.1770158644616573,
+      "se_reported": true,
+      "true_value": -0.5
+    },
+    {
+      "bias": 0.05440598462240758,
+      "coverage": 0.96,
+      "mean_std_err": 0.3263890247415437,
+      "n_used": 50,
+      "parameter": "theta0",
+      "rmse": 0.3138071082461264,
+      "se_reported": true,
+      "true_value": 0.6
+    },
+    {
+      "bias": -0.07503283311081484,
+      "coverage": 0.9,
+      "mean_std_err": 0.13941120643936086,
+      "n_used": 50,
+      "parameter": "rho",
+      "rmse": 0.17496504974083416,
+      "se_reported": true,
+      "true_value": 0.5
+    }
+  ],
+  "seconds": 0.19725408300291747
+}

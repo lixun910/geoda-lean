@@ -1,0 +1,98 @@
+{
+  "cell": {
+    "beta": [
+      1.0,
+      1.0,
+      -0.5
+    ],
+    "estimator": "GM_Combo",
+    "islands": false,
+    "k": 3,
+    "lam": 0.5,
+    "model": "sarar",
+    "n": 49,
+    "n_side": 7,
+    "reps": 50,
+    "rho": 0.5,
+    "seed_base": 20261013,
+    "theta": 0.6
+  },
+  "estimator": {
+    "callable": "spreg.GM_Combo",
+    "layout": [
+      "beta",
+      "rho",
+      "lam"
+    ],
+    "name": "GM_Combo",
+    "no_se": [
+      "lam"
+    ],
+    "note": "GM for SARAR, i.e. GNS with \u03b8 = 0. Note: spreg reports no standard error for lambda here, so no coverage is claimed for it"
+  },
+  "failures": 0,
+  "label": "sarar-GM_Combo-n49-rho0.5-lam0.5",
+  "names": [
+    "beta0",
+    "beta1",
+    "beta2",
+    "rho",
+    "lam"
+  ],
+  "reps_requested": 50,
+  "reps_used": 50,
+  "rows": [
+    {
+      "bias": 0.018546161373248576,
+      "coverage": 0.84,
+      "mean_std_err": 0.6049171767074416,
+      "n_used": 50,
+      "parameter": "beta0",
+      "rmse": 0.6661455098517558,
+      "se_reported": true,
+      "true_value": 1.0
+    },
+    {
+      "bias": -0.005948041677108756,
+      "coverage": 0.98,
+      "mean_std_err": 0.1496721455134399,
+      "n_used": 50,
+      "parameter": "beta1",
+      "rmse": 0.1456045129802134,
+      "se_reported": true,
+      "true_value": 1.0
+    },
+    {
+      "bias": 0.016786244295733218,
+      "coverage": 0.88,
+      "mean_std_err": 0.14277855784956278,
+      "n_used": 50,
+      "parameter": "beta2",
+      "rmse": 0.1819190945425722,
+      "se_reported": true,
+      "true_value": -0.5
+    },
+    {
+      "bias": -0.010966417170050926,
+      "coverage": 0.84,
+      "mean_std_err": 0.2541012934152629,
+      "n_used": 50,
+      "parameter": "rho",
+      "rmse": 0.2893231529030786,
+      "se_reported": true,
+      "true_value": 0.5
+    },
+    {
+      "bias": -0.1323532537692609,
+      "coverage": null,
+      "mean_std_err": null,
+      "n_used": 50,
+      "note": "spreg reports no standard error for this parameter",
+      "parameter": "lam",
+      "rmse": 0.2895423908534042,
+      "se_reported": false,
+      "true_value": 0.5
+    }
+  ],
+  "seconds": 0.2172017500270158
+}

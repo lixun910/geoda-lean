@@ -54,7 +54,10 @@ CI runs the same thing in a separate job; see `.github/workflows/validation.yml`
 
 ```
 geoda_reference.py       reference implementations mirroring the Lean definitions
-test_model_formulas.py   the cross-checks
+test_model_formulas.py   the cross-checks of the formulas
+test_benchmark.py        tests for the benchmark harness
+benchmark/               Monte Carlo study of the spreg *estimators* (see its own README)
+pytest.ini               silences spreg's own deprecation warnings
 requirements.txt         pinned dependencies
 ```
 
@@ -105,6 +108,15 @@ stated explicitly.
 * `test_island_weights_are_still_invertible_below_one` covers the degenerate
   island matrix.
 
+## The benchmark, one step further out
+
+`benchmark/` samples from the same data-generating processes and studies the
+**estimators** — bias, RMSE, 95% coverage, runtime — rather than the formulas. It is
+further still from a proof: the numbers are about `spreg`, not about `GeoDa`, and no
+Lean theorem is supported or undermined by any of them. `benchmark/README.md` carries
+the model/estimator support matrix and says which combinations `spreg` cannot fit at
+all. A CI-scale smoke run executes in the same workflow; the extended grid is opt-in.
+
 ## What this harness does not cover
 
 * Nothing about estimators, consistency or asymptotic theory. `spreg`'s *estimators*
@@ -112,3 +124,6 @@ stated explicitly.
 * No distributional claim. `IsWhiteNoise` in `GeoDa/RandomVector.lean` is a two-moment
   condition and no Gaussianity is assumed or tested.
 * The moving-average error process, and any model for which `GeoDa` has no equation.
+* Nothing here fits a GNS estimator with `θ ≠ 0` and `λ ≠ 0`: `spreg` has none, and the
+  benchmark raises rather than substituting a different estimator. See
+  `benchmark/README.md`.

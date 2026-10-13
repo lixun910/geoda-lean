@@ -22,6 +22,7 @@ GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 ex
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
 scripts/verify.sh      build + no-sorry + axiom audit
 validation/            numerical cross-checks vs NumPy/SciPy/PySAL; NOT verification
+validation/benchmark/  Monte Carlo bias/RMSE/coverage study of spreg estimators
 docs/original-GNS.lean the pre-existing draft, kept verbatim (see "Provenance")
 README.md              the user-facing write-up; keep it in step with the code
 ```
@@ -69,15 +70,24 @@ Budget ~10 GB of free disk for `.lake` (the toolchain is another ~3 GB under
 that module and its transitive imports — see the gotchas below.
 
 The second CI workflow, `Validation` (`.github/workflows/validation.yml`), installs
-`validation/requirements.txt` and runs `python -m pytest validation`. It is a
-cross-check of the formulas against NumPy/SciPy/PySAL, **not** a verification: it says
-nothing about theorem statements, and a red `Validation` job does not invalidate a
-proof. Do not describe it as verifying anything. To run it locally:
+`validation/requirements.txt`, runs `python -m pytest validation`, and then runs the
+CI-scale Monte Carlo smoke run
+`python validation/benchmark/benchmark.py --smoke`. It is a cross-check of the formulas
+against NumPy/SciPy/PySAL plus an empirical study of `spreg` **estimators**, **not** a
+verification: it says nothing about theorem statements, and a red `Validation` job does
+not invalidate a proof. Do not describe it as verifying anything. To run it locally:
 
 ```
 python -m venv .venv && .venv/bin/pip install -r validation/requirements.txt
 .venv/bin/python -m pytest validation -q
+.venv/bin/python validation/benchmark/benchmark.py --smoke
 ```
+
+The benchmark's `results/smoke/` is committed (deterministic except for the wall-clock
+`seconds` field); the `--extended` grid is opt-in and gitignored. `spreg` has no
+estimator for GNS with `θ ≠ 0` and `λ ≠ 0`, and `validation/benchmark/benchmark.py`'s
+`SUPPORT` table says so and raises rather than substituting a different estimator —
+keep it that way.
 
 ## Hard rules
 

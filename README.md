@@ -26,6 +26,7 @@ GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
 scripts/verify.sh         the verification suite
 validation/               numerical cross-checks against NumPy, SciPy and PySAL spreg
+validation/benchmark/     Monte Carlo bias/RMSE/coverage study of spreg estimators
 .github/workflows/        CI: the verification suite, and the numerical cross-checks
 ```
 
@@ -323,6 +324,32 @@ as well.
 `spreg`'s *estimators* are deliberately not used anywhere in the suite, and neither is
 its moving-average error process, which has no counterpart in `GeoDa`.
 
+### Monte Carlo benchmark (`validation/benchmark/`)
+
+`validation/` checks the *formulas* numerically. `validation/benchmark/` goes one step
+further out and studies the **estimators**: it samples from the exact data-generating
+processes `GeoDa/` formalizes, fits `spreg` estimators, and reports bias, RMSE, 95%
+coverage, runtime and failure counts as machine-readable output under
+`results/smoke/`.
+
+This is the furthest thing in the repository from a proof. `GeoDa/` proves statements
+about *model equations* and says nothing about estimators, consistency or asymptotic
+distributions; the numbers there are about `spreg`, not about `GeoDa`, and every one is
+a finite-sample estimate. They are not evidence for any Lean theorem.
+
+What they are good for is the opposite direction, and for locating where an estimator
+stops being trustworthy — bias in `ρ` grows as `ρ` moves from `0.5` toward `0.8` and the
+stability bound that `GeoDa.Multiplier`'s `|ρ| < 1` hypothesis guards.
+
+Two things are stated rather than papered over. `spreg` has **no estimator for GNS with
+`θ ≠ 0` *and* `λ ≠ 0`** — the model `GeoDa.GNSDes` writes down — so `SUPPORT["gns"]` is
+empty and the harness *raises* rather than fitting something close and labelling it GNS.
+And `GM_Combo` reports no standard error for `lambda`, so its coverage is reported as
+absent with the reason rather than computed from a misaligned error.
+
+The CI-scale smoke run executes in CI; the `--extended` grid is opt-in and its outputs
+are not committed.
+
 ## Scope and non-claims
 
 This is a formalization of *model equations*, plus the first two moments of the
@@ -431,6 +458,7 @@ independently and the two versions compared.
    the stretch goal of the probability layer and is strictly stronger than
    `IsWhiteNoise`: it fixes a distribution, not two moments. Keep it a separate
    claim.
-3. Numerical cross-checks against PySAL `spreg`, now that `Xβ` and `WXθ` are
-   explicit matrix products, the reduced form covers GNS itself, and the
-   invertibility hypothesis is discharged from `|ρ| < 1` and the weights.
+3. Cross-checking against PySAL `spreg` **is** in place: `validation/` compares the
+   formulas and `validation/benchmark/` studies the estimators, with the usual caveat
+   that neither is verification. What remains is a GNS **estimator** — `spreg` has none
+   for `θ ≠ 0` with `λ ≠ 0`, so that model can be simulated but not fitted.
