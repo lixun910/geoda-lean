@@ -14,6 +14,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # `use-github-cache: false` is deliberate. lean-action's GitHub cache archives
+      # the whole `.lake` tree — Mathlib's ~5.5 GB of oleans included — by piping tar
+      # into zstdmt, and on an ubuntu-latest runner that runs the disk out of space.
+      # It has never once produced a usable entry: every run logs
+      # `Cache not found for input keys: lake-Linux-X64-...`, and on 2026-10-13 the
+      # save step failed the whole job on `main` in
+      # `zstd: error 70 : Write error : cannot write block : No space left on device`.
+      # Turning it off costs nothing that matters: the Mathlib oleans come from
+      # `lake exe cache get` (which lean-action runs here and which takes ~2.5 min),
+      # and only this project's own five modules are left to compile.
       - name: Install Lean, fetch Mathlib cache, build
         uses: leanprover/lean-action@v1
         with:
@@ -21,6 +31,7 @@ jobs:
           build: true
           test: false
           lint: false
+          use-github-cache: false
 
       - name: Verification suite (build, no sorry, axiom audit)
         run: ./scripts/verify.sh
