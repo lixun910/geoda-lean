@@ -212,8 +212,11 @@ theorem isUnit_one_sub_smul_transpose_of_colSubstochastic (W : WMat n) (hW : Non
 This does not assert that `W` is an infinity-norm contraction. -/
 theorem isUnit_one_sub_smul_of_colSubstochastic (W : WMat n) (hW : Nonneg W)
     (h1 : ColSubstochastic W) (ρ : ℝ) (hρ : |ρ| < 1) : IsUnit (1 - ρ • W) := by
-  apply Matrix.isUnit_transpose.mp
-  simpa only [Matrix.transpose_sub, Matrix.transpose_one, Matrix.transpose_smul] using
-    isUnit_one_sub_smul_transpose_of_colSubstochastic W hW h1 ρ hρ
+  have ht : IsUnit ((1 - ρ • W)ᵀ) := by
+    simpa only [Matrix.transpose_sub, Matrix.transpose_one, Matrix.transpose_smul] using
+      isUnit_one_sub_smul_transpose_of_colSubstochastic W hW h1 ρ hρ
+  have hd := (Matrix.isUnit_iff_isUnit_det _).mp ht
+  rw [Matrix.det_transpose] at hd
+  exact (Matrix.isUnit_iff_isUnit_det _).mpr hd
 
 end GeoDa
