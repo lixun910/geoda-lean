@@ -5,7 +5,7 @@ Nesting Spatial (GNS) model into SAR, SEM and SDM, together with the reduced
 forms of SAR and SEM under an invertibility assumption.
 
 **Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 12 main
+that no proof uses `sorry` or `admit`, and audits the axioms of all 25 main
 theorems (see [Verification](#verification) for the exact toolchain, command and
 observed output).
 
@@ -15,6 +15,7 @@ observed output).
 GeoDa.lean             root module
 GeoDa/GNS.lean         abstract version: W is an arbitrary ℝ-linear endomorphism
 GeoDa/Weights.lean     concrete version: W is a real n×n matrix; reduced forms
+GeoDa/Design.lean      design matrix X; Xβ and WXθ formed by matrix product
 GeoDaTest/Smoke.lean   compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean  axiom audit, driven by scripts/verify.sh
 scripts/verify.sh      the verification suite
@@ -82,6 +83,44 @@ square matrices over `ℝ` this is equivalent to nonsingularity.
   they are **not** observationally equivalent; the equivalence in the previous
   item is an equivalence *after transforming the regressors*.
 
+### Design matrix (`GeoDa.Design`)
+
+`GeoDa.GNS` and `GeoDa.Weights` take `Xβ` and `WXθ` as *supplied vectors*: the
+arguments `xb` and `wxθ` are named after those terms, but nothing in those files
+multiplies a design matrix by a parameter vector to produce them. `GeoDa.Design`
+closes that gap. With a design matrix and two coefficient vectors
+
+```
+X : Matrix (Fin n) (Fin k) ℝ        β θ : Fin k → ℝ
+```
+
+the four equations are restated with `Xβ := X *ᵥ β` and `WXθ := (W * X) *ᵥ θ`:
+
+| model | Lean name |
+| --- | --- |
+| GNS | `GNSDes` |
+| SAR | `SARDes` |
+| SEM | `SEMDes` |
+| SDM | `SDMDes` |
+
+The results are:
+
+* `design_wxθ_eq`: `W *ᵥ (X *ᵥ θ) = (W * X) *ᵥ θ` — the lagged-regressor term is the
+  expected one, `W` applied to the fitted values `Xθ`;
+* `gnsDes_iff_gnsMat`, `sarDes_iff_sarMat`, `semDes_iff_semMat`, `sdmDes_iff_sdmMat`:
+  each design-matrix equation *is* the corresponding `GeoDa.Weights` equation with
+  `xb := X *ᵥ β` and `wxθ := (W * X) *ᵥ θ`, so nothing is lost or added by replacing
+  the supplied vectors with products;
+* `gnsDes_iff_sarDes`, `gnsDes_iff_semDes`, `gnsDes_iff_sdmDes`: the nesting results,
+  with the same explicit `u = ε` convention for SAR and SDM;
+* `sarDes_iff_mulVec`, `semDes_iff_mulVec`: the linear-system form;
+* `sarDes_iff_reducedForm`, `semDes_iff_reducedForm`: the reduced forms;
+* `semDes_reducedForm_eq_sarDes_reducedForm_of_filtered`: the SEM/SAR
+  filtered-regressor equivalence.
+
+The design matrix `X` is arbitrary: no full-rank, centring or intercept-column
+assumption is made, and `k` need not be related to `n`.
+
 ## Scope and non-claims
 
 This is a formalization of *model equations*. It does **not** establish
@@ -91,9 +130,10 @@ nesting results are textbook (Anselin), and the reduced-form statements are
 matrix algebra. `W` is an arbitrary real matrix — row standardization, symmetry,
 non-negativity and any other regularity of spatial weights are *not* assumed.
 
-The abstract file `GeoDa/GNS.lean` still takes `Xβ` and `WXθ` as supplied vectors
-rather than forming them as matrix products; only in `GeoDa/Weights.lean` is `W`
-concrete.
+`GeoDa/GNS.lean` still takes `Xβ` and `WXθ` as supplied vectors rather than forming
+them as matrix products; it is kept exactly as it was so that the theorem
+statements pinned in `GeoDaTest/Smoke.lean` do not move. `GeoDa/Design.lean` is
+where both terms are formed as actual matrix products.
 
 ## Import policy
 
@@ -111,13 +151,13 @@ and `lake-manifest.json`.
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
-Build completed successfully (1276 jobs).
+Build completed successfully (1277 jobs).
 ==> 2/3  no sorry / admit
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
-… (12 theorems, all on the same list)
-     ok: all 12 theorems depend only on [propext, Classical.choice, Quot.sound]
+… (25 theorems, all on the same list)
+     ok: all 25 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```
@@ -127,7 +167,8 @@ Every main theorem depends only on Lean's three standard axioms; none depends on
 
 CI (`.github/workflows/lean.yml`) runs the same suite on GitHub-hosted runners via
 `leanprover/lean-action`, which installs the pinned toolchain, fetches the Mathlib
-cache and builds.
+cache and builds. It has been observed to pass: run `38438326129` on `main`
+(commit `f9d7ed1`) completed green in 3 m 30 s on 2026-10-13.
 
 ## Provenance
 
@@ -142,17 +183,19 @@ beyond cosmetics:
    rewritten to be independent of `simp`'s normal form.
 
 The matrix development, the reduced-form and equivalence theorems, the tests and
-the CI configuration were added in the same pass. All of it was produced with
-Claude (Claude desktop, this session), **not** with Codex: if the milestone
+the CI configuration were added in the same pass. `GeoDa/Design.lean`, which forms
+`Xβ` and `WXθ` as matrix products, was added afterwards in the same way. All of it
+was produced with Claude (Claude desktop), **not** with Codex: if the milestone
 requires the proofs to be Codex's own work, they should be re-derived
 independently and the two versions compared.
 
 ## Next steps
 
-1. Form `Xβ` and `WXθ` from concrete design matrices instead of taking them as
-   given vectors.
-2. Prove the reduced forms under the weaker hypothesis `det (1 - ρ • W) ≠ 0`,
+1. Prove the reduced forms under the weaker hypothesis `det (1 - ρ • W) ≠ 0`,
    connecting `IsUnit` to `Matrix.isUnit_iff_isUnit_det`.
-3. Row-standardized weights: prove `W ⬝ 1 = 1` type properties and the
+2. Row-standardized weights: prove `W ⬝ 1 = 1` type properties and the
    invertibility of `1 - ρW` for `|ρ| < 1` (Neumann series / Gershgorin).
-4. Numerical cross-checks against PySAL `spreg`.
+3. A GNS-level reduced form — eliminating both `u` and `y` — in the style of the
+   SAR and SEM ones.
+4. Numerical cross-checks against PySAL `spreg`, now that `Xβ` and `WXθ` are
+   explicit matrix products.
