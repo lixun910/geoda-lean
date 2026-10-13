@@ -25,7 +25,8 @@ GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
 GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
 scripts/verify.sh         the verification suite
-.github/workflows/        CI running the same suite
+validation/               numerical cross-checks against NumPy, SciPy and PySAL spreg
+.github/workflows/        CI: the verification suite, and the numerical cross-checks
 ```
 
 ## What is formalized
@@ -293,6 +294,35 @@ assumed and in particular **no Gaussianity**. A multivariate normal innovation, 
 a likelihood built on it, would be strictly stronger and are not formalized here —
 see the [next steps](#next-steps).
 
+### Numerical cross-checks (`validation/`)
+
+`GeoDa` proves the formulas; `validation/` checks that the same formulas, computed a
+second time with NumPy, SciPy and PySAL `spreg`, give the same answers. It is a
+cross-check, **not a proof**, and it does not replace `./scripts/verify.sh`: the Python
+code is not verified and floating-point arithmetic carries no theorem.
+
+The two sides are independent, which is what makes the comparison worth making. Lean
+proves `gnsDes_iff_reducedForm`; `spreg.dgp.dgp_gns` computes `(I - λW)⁻¹u`, then
+`xb + wxg + u1`, then `(I - ρW)⁻¹` of that — the same theorem written as code; and
+`validation/geoda_reference.py` computes it a third way with linear solves. The test
+`test_lean_golden_instance_gns_reduced_form` is where they meet: it runs the exact
+instance that `GeoDaTest/Smoke.lean` proves outright in `wswap_gns_reducedForm_values`
+and checks both Python computations return the Lean-verified `u = [2, 2]` and
+`y = [26/3, 34/3]`.
+
+The suite also pins down the conventions that are the usual source of spurious
+"disagreement" — `spreg`'s argument order and its `rho`/`lam` meanings, the island
+convention shared by `GeoDa.normalize` and `libpysal`'s `transform="r"`, and the fact
+that `spreg`'s *default* `imethod="power_exp"` is a truncated power expansion, which
+is why every comparison but one asks for `imethod="true_inv"`. The exception measures
+that truncation error and shows it shrinking with `|ρ|` — the numerical shadow of
+`GeoDa.isUnit_one_sub_smul_of_rowSubstochastic`. Two Lean counterexamples
+(`GeoDaTest.wtwo_not_isUnit`, `GeoDaTest.wneg_not_isUnit`) are reproduced numerically
+as well.
+
+`spreg`'s *estimators* are deliberately not used anywhere in the suite, and neither is
+its moving-average error process, which has no counterpart in `GeoDa`.
+
 ## Scope and non-claims
 
 This is a formalization of *model equations*, plus the first two moments of the
@@ -351,7 +381,8 @@ VERIFICATION SUCCEEDED
 Every main theorem depends only on Lean's three standard axioms; none depends on
 `sorryAx`, and no additional axiom is introduced.
 
-CI (`.github/workflows/lean.yml`) runs the same suite on GitHub-hosted runners via
+Two CI workflows run: `Lean` (`.github/workflows/lean.yml`) runs `./scripts/verify.sh`
+on GitHub-hosted runners via
 `leanprover/lean-action`, which installs the pinned toolchain, fetches the Mathlib
 cache and builds. It triggers on `push` to `main`/`master`, on `pull_request` and on
 `workflow_dispatch` — note that pushing a feature branch on its own starts nothing.
@@ -363,6 +394,12 @@ usable cache entry, and on 2026-10-13 it failed a `main` run with
 `zstd: error 70 : Write error : cannot write block : No space left on device`,
 skipping the verification step altogether. The Mathlib oleans come from
 `lake exe cache get`, which the action still runs, so the build itself is unaffected.
+
+`Validation` (`.github/workflows/validation.yml`) is a separate, lightweight job that
+installs the pinned `validation/requirements.txt` and runs the numerical cross-checks
+above. It is a second opinion on the formulas, never the verification: a green
+`Validation` job says nothing about the theorem statements, and a red one does not
+invalidate a proof.
 
 ## Provenance
 

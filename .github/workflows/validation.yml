@@ -1,0 +1,40 @@
+name: Validation
+
+# Numerical cross-checks of the formulas in `GeoDa/` against NumPy, SciPy and PySAL
+# `spreg`. Kept in its own workflow, and its own job, so that it stays lightweight and
+# so that it is never confused with the verification.
+#
+# This job is a *second opinion* on the formulas, not the proof. The verification is
+# `./scripts/verify.sh`, run by the `Lean` workflow: that is what establishes the
+# theorem statements, the absence of `sorry`, and the axiom footprint. Here we only
+# check that a concrete instance of the same formulas agrees with an independent
+# implementation.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  numerical:
+    name: Numerical cross-checks (NumPy, SciPy, PySAL)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Pinned to match validation/requirements.txt, which was resolved and run
+          # green on CPython 3.14. Do not bump these without re-running the suite.
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: validation/requirements.txt
+
+      - name: Install pinned dependencies
+        run: pip install -r validation/requirements.txt
+
+      - name: Numerical cross-checks against the Lean formulas
+        run: python -m pytest validation -q
