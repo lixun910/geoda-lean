@@ -167,12 +167,16 @@ Every main theorem depends only on Lean's three standard axioms; none depends on
 
 CI (`.github/workflows/lean.yml`) runs the same suite on GitHub-hosted runners via
 `leanprover/lean-action`, which installs the pinned toolchain, fetches the Mathlib
-cache and builds. Every run made so far has been green, including run `38441896644`
-on the design-matrix commit `0f3a785`, whose log ends with
-`ok: all 25 theorems depend only on [propext, Classical.choice, Quot.sound]` and
-`VERIFICATION SUCCEEDED`. Note that the workflow triggers only on `push` to
-`main`/`master`, on `pull_request` and on `workflow_dispatch` — pushing a feature
-branch on its own starts nothing.
+cache and builds. It triggers on `push` to `main`/`master`, on `pull_request` and on
+`workflow_dispatch` — note that pushing a feature branch on its own starts nothing.
+
+`lean-action`'s GitHub build cache is deliberately disabled (`use-github-cache:
+false`). Its save step archives the whole `.lake` tree — Mathlib's oleans included —
+and on an `ubuntu-latest` runner that exhausts the disk. It had never produced a
+usable cache entry, and on 2026-10-13 it failed a `main` run with
+`zstd: error 70 : Write error : cannot write block : No space left on device`,
+skipping the verification step altogether. The Mathlib oleans come from
+`lake exe cache get`, which the action still runs, so the build itself is unaffected.
 
 ## Provenance
 

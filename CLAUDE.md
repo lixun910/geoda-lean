@@ -176,24 +176,24 @@ with `EXPECTED_COUNT` in `scripts/verify.sh` bumped to match.
 
 ## Open items
 
-* **CI passes, but only three runs have ever existed — all green.** All on
-  2026-10-13:
-  * `38438326129` on `main`, commit `f9d7ed1`, triggered by `push`, 3 m 30 s;
-  * `38440891935` on `claude/design-matrix-xb-wxtheta-d2c9d3`, commit `d8b99cb`,
-    `workflow_dispatch`, 4 m 17 s;
-  * `38441896644` on the same branch, commit `0f3a785` (the `GeoDa/Design.lean`
-    work), `workflow_dispatch`, 3 m 35 s — its log ends
-    `ok: all 25 theorems depend only on [propext, Classical.choice, Quot.sound]`
-    then `VERIFICATION SUCCEEDED`.
-
-  Things to know before relying on it:
-  * the workflow triggers only on `push` to `main`/`master`, on `pull_request`, and
-    on `workflow_dispatch` — pushing a feature branch starts *nothing*. Use
-    `gh workflow run lean.yml --ref <branch>` to exercise CI on a branch; that is
-    how the two branch runs above were started.
-  * the runs carry two non-fatal annotations — the action's cache-save step
-    (`Failed to save: "/usr/bin/tar" failed with error ... exit code 2`) and a
-    Node.js 20 deprecation notice. Neither fails the job.
+* **CI runs, but it starts on fewer events than you would guess.** The workflow
+  triggers only on `push` to `main`/`master`, on `pull_request` and on
+  `workflow_dispatch` — pushing a feature branch starts *nothing*, so use
+  `gh workflow run lean.yml --ref <branch>` to exercise CI on a branch. The one
+  annotation left is a Node.js 20 deprecation notice on `actions/checkout@v4`.
+* **The GitHub build cache is off on purpose** (`use-github-cache: false` in
+  `.github/workflows/lean.yml`). `lean-action`'s cache save archives the whole
+  `.lake` tree — Mathlib's ~5.5 GB of oleans included — by piping `tar` into
+  `zstdmt`, and on an `ubuntu-latest` runner that runs the disk out of space. It had
+  never once produced a usable entry (every run logs
+  `Cache not found for input keys: lake-Linux-X64-...`), and on 2026-10-13 it failed a
+  `main` run outright with
+  `zstd: error 70 : Write error : cannot write block : No space left on device`,
+  which **skipped `./scripts/verify.sh` entirely** — the run was red even though
+  `lake build` had just printed `Build completed successfully`. Re-enable it and that
+  comes back. Little is lost: the Mathlib oleans come from `lake exe cache get`
+  (which the action still runs, ~2.5 min), and only this project's own modules are
+  left to compile.
 * Local `./scripts/verify.sh` is the load-bearing evidence; CI is a second opinion
   on a different machine.
 * The README, this file and the sources are kept in step; when the theorems change,
