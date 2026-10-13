@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 
 import GeoDa
 import GeoDaTest.AgentTasks
+import GeoDaTest.HeteroRho
 import GeoDaTest.DSL
 
 /-!
@@ -123,3 +124,19 @@ user-introduced axiom.
 -- GeoDaTest.AgentTasks: the refuted conjectures of the agent-loop benchmark
 #print axioms GeoDaTest.nonneg_alone_is_not_enough
 #print axioms GeoDaTest.rowSubstochastic_alone_is_not_enough
+
+-- GeoDa.HeteroRho: the heterogeneous-rho model, its reduced form and its identifiability
+#print axioms GeoDa.diagMul_mulVec
+#print axioms GeoDa.rowSum_diagMul
+#print axioms GeoDa.abs_mulVec_diagMul_apply_le
+#print axioms GeoDa.norm_mulVec_diagMul_le
+#print axioms GeoDa.isUnit_one_sub_diagMul_of_rowSubstochastic
+#print axioms GeoDa.heteroSARDes_iff_mulVec
+#print axioms GeoDa.heteroSARDes_iff_reducedForm
+#print axioms GeoDa.diagMul_update_island
+#print axioms GeoDa.diagMul_injective_of_no_island
+#print axioms GeoDa.diagMul_eq_of_reducedForm_eq
+#print axioms GeoDa.heteroSAR_parameter_identified
+#print axioms GeoDa.heteroSARDes_island_invariant
+#print axioms GeoDa.heteroSAR_reducedForm_island_invariant
+#print axioms GeoDaTest.wisland_two_rho_same_multiplier

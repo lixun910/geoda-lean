@@ -69,6 +69,22 @@ open GeoDa
 #check @GeoDa.sdmDes_iff_mulVec
 #check @GeoDa.sdmDes_iff_reducedForm
 
+#check @GeoDa.diagMul
+#check @GeoDa.HeteroSARDes
+#check @GeoDa.diagMul_mulVec
+#check @GeoDa.rowSum_diagMul
+#check @GeoDa.abs_mulVec_diagMul_apply_le
+#check @GeoDa.norm_mulVec_diagMul_le
+#check @GeoDa.isUnit_one_sub_diagMul_of_rowSubstochastic
+#check @GeoDa.heteroSARDes_iff_mulVec
+#check @GeoDa.heteroSARDes_iff_reducedForm
+#check @GeoDa.diagMul_update_island
+#check @GeoDa.diagMul_injective_of_no_island
+#check @GeoDa.diagMul_eq_of_reducedForm_eq
+#check @GeoDa.heteroSAR_parameter_identified
+#check @GeoDa.heteroSARDes_island_invariant
+#check @GeoDa.heteroSAR_reducedForm_island_invariant
+
 #check @GeoDa.SLXDes
 #check @GeoDa.gnsDes_iff_slxDes
 #check @GeoDa.colSum

@@ -1,6 +1,7 @@
 import GeoDa.Design
 import GeoDa.DSL
 import GeoDa.GNS
+import GeoDa.HeteroRho
 import GeoDa.Multiplier
 import GeoDa.Nesting
 import GeoDa.RandomVector
