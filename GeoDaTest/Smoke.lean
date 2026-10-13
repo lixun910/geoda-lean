@@ -69,6 +69,16 @@ open GeoDa
 #check @GeoDa.sdmDes_iff_mulVec
 #check @GeoDa.sdmDes_iff_reducedForm
 
+/-! ### Invertibility of the spatial multiplier: signature pins -/
+
+#check @GeoDa.abs_mulVec_apply_le_norm
+#check @GeoDa.norm_mulVec_le
+#check @GeoDa.mulVec_injective_one_sub_smul
+#check @GeoDa.isUnit_one_sub_smul_of_rowSubstochastic
+#check @GeoDa.isUnit_one_sub_smul_of_rowStochastic
+#check @GeoDa.sarMat_iff_reducedForm_of_rowSubstochastic
+#check @GeoDa.semMat_iff_reducedForm_of_rowSubstochastic
+
 /-! ### Spatial weights: signature pins -/
 
 #check @GeoDa.mulVec_one_apply
@@ -327,5 +337,75 @@ theorem wnotdiag_not_rowStochastic : ¬ RowStochastic Wnotdiag := by
 neither is assumed by the other anywhere in the development. -/
 example : ZeroDiag Wnotdiag ∧ ¬ RowStochastic Wnotdiag :=
   ⟨wnotdiag_zeroDiag, wnotdiag_not_rowStochastic⟩
+
+/-! ### Invertibility of the spatial multiplier `1 - ρW` -/
+
+/-- Row-stochastic nonnegative weights: `1 - ρW` is a unit for `|ρ| < 1`, with no
+`IsUnit` hypothesis anywhere. -/
+example (ρ : ℝ) (hρ : |ρ| < 1) : IsUnit (1 - ρ • Wswap) :=
+  isUnit_one_sub_smul_of_rowStochastic Wswap wswap_nonneg wswap_rowStochastic ρ hρ
+
+/-- **Island weights.** A zero row is allowed: row-substochasticity is enough, and
+`Wisland` has row sums `0` and `1`. -/
+example (ρ : ℝ) (hρ : |ρ| < 1) : IsUnit (1 - ρ • Wisland) :=
+  isUnit_one_sub_smul_of_rowSubstochastic Wisland wisland_nonneg wisland_rowSubstochastic ρ hρ
+
+/-- The SAR reduced form at `n = 2` with the invertibility hypothesis *derived*
+from the weights rather than assumed. -/
+example (y xb ε : Vec 2) :
+    SARMat Wswap y xb ε (1/2) ↔ y = ((1 - (1/2 : ℝ) • Wswap)⁻¹ : WMat 2) *ᵥ (xb + ε) :=
+  sarMat_iff_reducedForm_of_rowSubstochastic Wswap wswap_nonneg
+    (rowSubstochastic_of_rowStochastic Wswap wswap_rowStochastic)
+    (1/2) (by norm_num) y xb ε
+
+/-- **Counterexample 1 — nonnegativity alone is not enough.** `2 • 1` is
+nonnegative, but its rows sum to `2`, and at `ρ = 1/2` the multiplier is
+`1 - (1/2)·2·1 = 0`. -/
+def Wtwo : WMat 2 := (2 : ℝ) • (1 : WMat 2)
+
+theorem wtwo_nonneg : Nonneg Wtwo := by
+  intro i j
+  fin_cases i <;> fin_cases j <;>
+    norm_num [Wtwo, Matrix.smul_apply, Matrix.one_apply]
+
+theorem wtwo_not_rowSubstochastic : ¬ RowSubstochastic Wtwo := by
+  intro h
+  have h0 := h 0
+  norm_num [Wtwo, rowSum, Fin.sum_univ_two, Matrix.smul_apply, Matrix.one_apply] at h0
+
+theorem wtwo_not_isUnit : ¬ IsUnit (1 - (1/2 : ℝ) • Wtwo) := by
+  have h : (1 - (1/2 : ℝ) • Wtwo : WMat 2) = 0 := by
+    ext i j
+    fin_cases i <;> fin_cases j <;>
+      norm_num [Wtwo, Matrix.sub_apply, Matrix.smul_apply, Matrix.one_apply]
+  rw [h]
+  exact not_isUnit_zero
+
+/-- **Counterexample 2 — row-substochasticity alone is not enough either.**
+`!![2, -1; 0, 0]` has row sums `1` and `0`, but a negative entry, and at
+`ρ = 1/2` the multiplier is the singular `!![0, 1/2; 0, 1]`. -/
+def Wneg : WMat 2 := !![2, -1; 0, 0]
+
+theorem wneg_rowSubstochastic : RowSubstochastic Wneg := by
+  intro i
+  fin_cases i <;> norm_num [Wneg, rowSum, Fin.sum_univ_two]
+
+theorem wneg_not_nonneg : ¬ Nonneg Wneg := by
+  intro h
+  have h01 := h 0 1
+  norm_num [Wneg] at h01
+
+theorem wneg_multiplier : (1 - (1/2 : ℝ) • Wneg : WMat 2) = !![0, 1/2; 0, 1] := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    norm_num [Wneg, Matrix.sub_apply, Matrix.smul_apply, Matrix.one_apply]
+
+theorem wneg_det_zero : (1 - (1/2 : ℝ) • Wneg).det = 0 := by
+  rw [wneg_multiplier, Matrix.det_fin_two]
+  norm_num
+
+theorem wneg_not_isUnit : ¬ IsUnit (1 - (1/2 : ℝ) • Wneg) := by
+  rw [Matrix.isUnit_iff_isUnit_det, wneg_det_zero]
+  exact not_isUnit_zero
 
 end GeoDaTest

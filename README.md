@@ -7,7 +7,7 @@ assumption, and the spatial weights predicates (nonnegativity, row
 standardization, islands) those models are stated over.
 
 **Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 56 main
+that no proof uses `sorry` or `admit`, and audits the axioms of all 63 main
 theorems (see [Verification](#verification) for the exact toolchain, command and
 observed output).
 
@@ -19,6 +19,7 @@ GeoDa/GNS.lean            abstract version: W is an arbitrary ℝ-linear endomor
 GeoDa/Weights.lean        concrete version: W is a real n×n matrix; reduced forms
 GeoDa/Design.lean         design matrix X; Xβ and WXθ formed by matrix product
 GeoDa/ReducedForm.lean    the full GNS reduced form, eliminating u and y together
+GeoDa/Multiplier.lean     invertibility of 1 - ρW from the weights themselves
 GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
 GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
@@ -204,6 +205,45 @@ proved: the identity is row-stochastic with a nonzero diagonal
 (`not_zeroDiag_one`), while `!![0, 1; 0, 0]` has a zero diagonal but a vanishing
 row (`GeoDaTest.wnotdiag_not_rowStochastic`).
 
+### Invertibility of the spatial multiplier (`GeoDa.Multiplier`)
+
+Every reduced form above carries an invertibility hypothesis on `1 - ρW` and
+`1 - λW`, taken as `IsUnit` or as a nonvanishing determinant. Those are *stated*,
+never derived, so on their own they say nothing about which weights satisfy them.
+`GeoDa.ReducedForm`'s docstring says as much. `GeoDa.Multiplier` closes that gap
+for the weights the models are actually used with.
+
+For **nonnegative row-substochastic** `W` — every entry `≥ 0`, every row summing
+to at most `1`, islands included — applying `W` cannot increase the `ℓ∞` norm of a
+vector:
+
+* `norm_mulVec_le`: `‖W *ᵥ v‖ ≤ ‖v‖`. Row `i` contributes at most
+  `(∑ j, W i j) · ‖v‖ ≤ ‖v‖`, which is the row-sum estimate `‖W‖∞ ≤ 1` of the
+  spatial-weights literature, stated on vectors so that no matrix norm is needed.
+  `abs_mulVec_apply_le_norm` is the coordinate-wise version.
+* `mulVec_injective_one_sub_smul`: for `|ρ| < 1`, `1 - ρW` is injective —
+  `(1 - ρW)v = 0` gives `v = ρ • (Wv)`, hence `‖v‖ ≤ |ρ| ‖v‖`, and `|ρ| < 1`
+  forces `‖v‖ = 0`.
+* `isUnit_one_sub_smul_of_rowSubstochastic`: **`|ρ| < 1` implies
+  `IsUnit (1 - ρ • W)`**, with the weights assumptions explicit and no `IsUnit`
+  in sight. The same statement is used unchanged for the spatial-error parameter
+  `λ`; nothing in the proof is `ρ`-specific.
+  `isUnit_one_sub_smul_of_rowStochastic` is the row-stochastic case.
+* `sarMat_iff_reducedForm_of_rowSubstochastic` and
+  `semMat_iff_reducedForm_of_rowSubstochastic` are the bridges: the SAR and SEM
+  reduced forms with `IsUnit` replaced by the weights hypotheses and `|ρ| < 1`.
+
+Two hypotheses are used, and neither is decorative. `GeoDaTest.wtwo_not_isUnit`
+shows `2 • 1` — nonnegative, rows summing to `2` — makes the multiplier
+`1 - (1/2)·2·1 = 0` at `ρ = 1/2`; `GeoDaTest.wneg_not_isUnit` shows
+`!![2, -1; 0, 0]` — row sums `1` and `0`, but a negative entry — makes it the
+singular `!![0, 1/2; 0, 1]`. So nonnegativity and row-substochasticity are both
+needed, and `|ρ| < 1` alone does not suffice for an arbitrary `W`.
+
+Islands are *allowed*: the island matrix `Wisland` is covered by
+`isUnit_one_sub_smul_of_rowSubstochastic` precisely because the hypothesis is
+sub-stochasticity, not standardization.
+
 ## Scope and non-claims
 
 This is a formalization of *model equations*. It does **not** establish
@@ -217,7 +257,9 @@ arbitrary real matrix: row standardization, symmetry, nonnegativity and any othe
 regularity of spatial weights are *not* assumed. `GeoDa/SpatialWeights.lean`
 makes those regularities available as predicates, but they remain hypotheses of
 individual theorems rather than global assumptions, and even there symmetry is
-never assumed and a zero diagonal is never assumed.
+never assumed and a zero diagonal is never assumed. `GeoDa/Multiplier.lean` is
+the only place where nonnegativity and row-substochasticity are *used*, and only
+to derive invertibility; it still assumes neither symmetry nor a zero diagonal.
 
 `GeoDa/GNS.lean` still takes `Xβ` and `WXθ` as supplied vectors rather than forming
 them as matrix products; it is kept exactly as it was so that the theorem
@@ -227,7 +269,10 @@ where both terms are formed as actual matrix products.
 ## Import policy
 
 The project imports the specific Mathlib modules it needs rather than the whole
-of Mathlib. This keeps builds fast and the CI cache small; `import Mathlib` would
+of Mathlib. `GeoDa/Multiplier.lean` is the one file that reaches into `Analysis`
+(`Mathlib.Analysis.Normed.Group.Constructions` for the `ℓ∞` norm on `Fin n → ℝ`
+and `Mathlib.Analysis.Normed.Module.Basic` for `norm_smul`); everything else
+stays in algebra. This keeps builds fast and the CI cache small; `import Mathlib` would
 pull in all ~8600 Mathlib modules. Note `*ᵥ` is a *scoped* notation, so files
 using it need `open scoped Matrix` (and `open Matrix` for the lemma names).
 
@@ -240,13 +285,13 @@ and `lake-manifest.json`.
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
-Build completed successfully (1810 jobs).
+Build completed successfully (2099 jobs).
 ==> 2/3  no sorry / admit
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
 … (56 theorems, all on the same list)
-     ok: all 56 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 63 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```
@@ -290,12 +335,9 @@ independently and the two versions compared.
 
 1. State the *SAR and SEM* reduced forms under `det ≠ 0` as well. The GNS ones
    already are (`gnsDes_iff_reducedForm_of_det_ne_zero`, via
-   `isUnit_iff_det_ne_zero`); the SAR/SEM theorems in `GeoDa.Weights` and
-   `GeoDa.Design` still take `IsUnit`.
-2. Invertibility of `1 - ρW` for `|ρ| < 1` (Neumann series / Gershgorin). The
-   *row-sum* half of this is now available in `GeoDa/SpatialWeights.lean`:
-   `GeoDa.mulVec_one_apply` and `GeoDa.rowStochastic_iff_mulVec_one` are the
-   row-stochasticity statements the convergence argument needs, and
-   `GeoDa.RowSubstochastic` is the hypothesis the operator-norm bound wants.
-3. Numerical cross-checks against PySAL `spreg`, now that `Xβ` and `WXθ` are
-   explicit matrix products and the reduced form covers GNS itself.
+   `isUnit_iff_det_ne_zero`), and `GeoDa.Multiplier` derives the hypothesis from
+   the weights for SAR and SEM; the theorems in `GeoDa.Weights` and
+   `GeoDa.Design` that take `IsUnit` directly are unchanged.
+2. Numerical cross-checks against PySAL `spreg`, now that `Xβ` and `WXθ` are
+   explicit matrix products, the reduced form covers GNS itself, and the
+   invertibility hypothesis is discharged from `|ρ| < 1` and the weights.
