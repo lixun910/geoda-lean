@@ -69,6 +69,13 @@ open GeoDa
 #check @GeoDa.sdmDes_iff_mulVec
 #check @GeoDa.sdmDes_iff_reducedForm
 
+#check @GeoDa.SLXDes
+#check @GeoDa.gnsDes_iff_slxDes
+#check @GeoDa.colSum
+#check @GeoDa.ColSubstochastic
+#check @GeoDa.rowSum_transpose
+#check @GeoDa.isUnit_one_sub_smul_transpose_of_colSubstochastic
+
 /-! ### Random vectors: signature pins -/
 
 #check @GeoDa.rvExp

@@ -4,12 +4,12 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 87 theorems.
+**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 92 theorems.
 
 ## Layout
 
 ```
-GeoDa.lean             root module (imports all seven libraries)
+GeoDa.lean             root module (imports all eight libraries)
 GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
 GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
 GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
@@ -19,7 +19,12 @@ GeoDa/SpatialWeights.lean  weights predicates (Nonneg, RowStochastic, Island, �
 GeoDa/Multiplier.lean  |ρ| < 1 ⇒ IsUnit (1 - ρ • W) from Nonneg + RowSubstochastic
 GeoDa/RandomVector.lean  probability layer: rvExp, rvCov, IsWhiteNoise, model moments
 GeoDa/DSL.lean         `spatial_model`: generate a model's `def` from its equation
+GeoDa/Nesting.lean     SLX, and GNS with both spatial coefficients off
 GeoDaTest/DSL.lean     DSL tests: rfl-equivalence to the hand-written specs, rejections
+GeoDaTest/AgentTasks.lean  the agent-loop benchmark's refuted conjectures
+AGENTS.md              the agent protocol; points at this file rather than copying it
+docs/agent-tasks.md    the agent-loop benchmark record
+.claude/skills/geoda-lean/  reusable Skill: conventions + the task protocol
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
 scripts/verify.sh      build + no-sorry + axiom audit
@@ -36,11 +41,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-87 main theorems in `GeoDaTest/Axioms.lean` depend only on
+92 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 87 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 92 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -90,6 +95,10 @@ The benchmark's `results/smoke/` is committed (deterministic except for the wall
 estimator for GNS with `θ ≠ 0` and `λ ≠ 0`, and `validation/benchmark/benchmark.py`'s
 `SUPPORT` table says so and raises rather than substituting a different estimator —
 keep it that way.
+
+`AGENTS.md` is for automated agents and **deliberately does not repeat this file** — an
+earlier revision was a copy of it and drifted out of date within two pull requests. Keep
+it a pointer plus the agent-specific protocol; do not let it become a second copy.
 
 ## Hard rules
 
@@ -271,7 +280,8 @@ What is left, roughly in order of value:
 Already done, for the record: P0.1 `GeoDa/SpatialWeights.lean`, P0.2
 `GeoDa/Multiplier.lean`, P0.3 `GeoDa/ReducedForm.lean`, P1.1 (the moment half)
 `GeoDa/RandomVector.lean`, P2.1 `validation/`, P2.2 `validation/benchmark/`,
-P3.1 `GeoDa/DSL.lean` + `docs/DSL-RFC.md`.
+P3.1 `GeoDa/DSL.lean` + `docs/DSL-RFC.md`, P4.1 `AGENTS.md` +
+`.claude/skills/geoda-lean/` + `docs/agent-tasks.md`.
 
 Same acceptance criteria as always: `./scripts/verify.sh` exits 0, no `sorry`, no
 new axiom, new main theorems pinned in `Smoke.lean` and audited in `Axioms.lean`,

@@ -1,8 +1,9 @@
 import GeoDa.Design
+import GeoDa.DSL
 import GeoDa.GNS
 import GeoDa.Multiplier
+import GeoDa.Nesting
 import GeoDa.RandomVector
 import GeoDa.ReducedForm
 import GeoDa.SpatialWeights
 import GeoDa.Weights
-import GeoDa.DSL
