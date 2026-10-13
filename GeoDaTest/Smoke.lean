@@ -53,6 +53,27 @@ open GeoDa
 #check @GeoDa.semDes_iff_reducedForm
 #check @GeoDa.semDes_reducedForm_eq_sarDes_reducedForm_of_filtered
 
+/-! ### Spatial weights: signature pins -/
+
+#check @GeoDa.mulVec_one_apply
+#check @GeoDa.rowStochastic_iff_mulVec_one
+#check @GeoDa.rowSum_nonneg
+#check @GeoDa.rowSubstochastic_of_rowStochastic
+#check @GeoDa.rowSum_eq_zero_of_island
+#check @GeoDa.island_iff_rowSum_eq_zero
+#check @GeoDa.not_rowStochastic_of_island
+#check @GeoDa.rowStochastic_one
+#check @GeoDa.nonneg_one
+#check @GeoDa.not_zeroDiag_one
+#check @GeoDa.rowSum_normalize
+#check @GeoDa.rowStochastic_normalize_of_ne_zero
+#check @GeoDa.island_normalize
+#check @GeoDa.nonneg_normalize
+#check @GeoDa.zeroDiag_normalize
+#check @GeoDa.rowSubstochastic_normalize
+#check @GeoDa.rowStochastic_normalize_iff
+#check @GeoDa.rowStochastic_normalize_iff_pos
+
 /-! ### Explicit data -/
 
 /-- The symmetric two-region "swap" weights matrix. -/
@@ -119,5 +140,119 @@ example : (1 - (1/2 : ℝ) • (1 : WMat 1)) = (1/2 : ℝ) • (1 : WMat 1) := b
   fin_cases i
   fin_cases j
   norm_num [Matrix.sub_apply, Matrix.smul_apply, Matrix.one_apply]
+
+/-! ### Spatial weights: an island (§ "positive-row and island cases tested
+independently") -/
+
+/-- A 2×2 **island** example: region `0` has no neighbours, region `1` points at
+region `0` and already carries unit weight. -/
+def Wisland : WMat 2 := !![0, 0; 1, 0]
+
+theorem wisland_nonneg : Nonneg Wisland := by
+  intro i j
+  fin_cases i <;> fin_cases j <;> norm_num [Wisland]
+
+theorem wisland_zeroDiag : ZeroDiag Wisland := by
+  intro i
+  fin_cases i <;> norm_num [Wisland]
+
+theorem wisland_island : Island Wisland 0 := by
+  intro j
+  fin_cases j <;> norm_num [Wisland]
+
+theorem wisland_not_island_one : ¬ Island Wisland 1 := by
+  intro h
+  have := h 0
+  norm_num [Wisland] at this
+
+theorem wisland_rowSubstochastic : RowSubstochastic Wisland := by
+  intro i
+  fin_cases i <;> norm_num [Wisland, rowSum, Fin.sum_univ_two]
+
+/-- The island makes the weights non-stochastic: row `0` sums to `0`, not `1`. -/
+theorem wisland_not_rowStochastic : ¬ RowStochastic Wisland :=
+  not_rowStochastic_of_island Wisland wisland_island
+
+/-- Normalizing weights that contain an island changes nothing: the zero row is
+carried to a zero row rather than dividing by zero. -/
+theorem normalize_wisland : normalize Wisland = Wisland := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [Wisland, normalize, rowSum, Fin.sum_univ_two]
+
+/-- Consequently the normalized matrix is still not row-stochastic. -/
+example : ¬ RowStochastic (normalize Wisland) := by
+  rw [rowStochastic_normalize_iff Wisland wisland_nonneg]
+  exact fun h => h 0 wisland_island
+
+/-! ### Spatial weights: positive rows -/
+
+/-- The symmetric two-region swap matrix `Wswap` is row-stochastic (defined
+above under "explicit data"). -/
+theorem wswap_rowStochastic : RowStochastic Wswap := by
+  intro i
+  fin_cases i <;> norm_num [Wswap, rowSum, Fin.sum_univ_two]
+
+theorem wswap_nonneg : Nonneg Wswap := by
+  intro i j
+  fin_cases i <;> fin_cases j <;> norm_num [Wswap]
+
+theorem wswap_zeroDiag : ZeroDiag Wswap := by
+  intro i
+  fin_cases i <;> norm_num [Wswap]
+
+/-- The row-sum identity, realized as a matrix–vector product. -/
+example : Wswap *ᵥ (1 : Vec 2) = 1 :=
+  (rowStochastic_iff_mulVec_one Wswap).mp wswap_rowStochastic
+
+/-- Normalizing already row-stochastic weights is the identity. -/
+theorem normalize_wswap : normalize Wswap = Wswap := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [Wswap, normalize, rowSum, Fin.sum_univ_two]
+
+/-- Nonnegative weights whose rows are *not* normalized: rows sum to `3` and `7`. -/
+def Wpos : WMat 2 := !![1, 2; 3, 4]
+
+theorem wpos_nonneg : Nonneg Wpos := by
+  intro i j
+  fin_cases i <;> fin_cases j <;> norm_num [Wpos]
+
+/-- Normalization turns positive rows into unit rows. -/
+theorem wpos_normalize_rowStochastic : RowStochastic (normalize Wpos) :=
+  (rowStochastic_normalize_iff_pos Wpos wpos_nonneg).mpr
+    (by intro i; fin_cases i <;> norm_num [Wpos, rowSum, Fin.sum_univ_two])
+
+/-- The normalized positive-row matrix in explicit form: rows `[1/3, 2/3]` and
+`[3/7, 4/7]`. -/
+theorem normalize_wpos : normalize Wpos = !![1/3, 2/3; 3/7, 4/7] := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    norm_num [Wpos, normalize, rowSum, Fin.sum_univ_two]
+
+/-! ### Independence of row standardization and a zero diagonal -/
+
+/-- Row standardization does **not** imply a zero diagonal: the identity is
+row-stochastic with diagonal `1`. -/
+example : RowStochastic (1 : WMat 2) ∧ ¬ ZeroDiag (1 : WMat 2) :=
+  ⟨rowStochastic_one, not_zeroDiag_one 0⟩
+
+/-- A zero diagonal does **not** imply row standardization: region `1` has no
+neighbours at all here, even though no region is its own neighbour. -/
+def Wnotdiag : WMat 2 := !![0, 1; 0, 0]
+
+theorem wnotdiag_zeroDiag : ZeroDiag Wnotdiag := by
+  intro i
+  fin_cases i <;> norm_num [Wnotdiag]
+
+theorem wnotdiag_not_rowStochastic : ¬ RowStochastic Wnotdiag := by
+  intro h
+  have h1 := h 1
+  norm_num [Wnotdiag, rowSum, Fin.sum_univ_two] at h1
+
+/-- `ZeroDiag` and `RowStochastic` are therefore logically independent, and
+neither is assumed by the other anywhere in the development. -/
+example : ZeroDiag Wnotdiag ∧ ¬ RowStochastic Wnotdiag :=
+  ⟨wnotdiag_zeroDiag, wnotdiag_not_rowStochastic⟩
 
 end GeoDaTest

@@ -1,0 +1,12 @@
+⚠ [842/1159] Replayed GeoDa.GNS
+✖ [1270/1276] Building GeoDa.Weights (746ms)
+error: GeoDa/Weights.lean:234:6: Type mismatch
+  Eq.symm hε
+has type
+  0 + ↑hlam.unit⁻¹ *ᵥ ε = ε
+but is expected to have type
+  ↑hlam.unit⁻¹ *ᵥ ε = ε
+⚠ [1273/1276] Ran GeoDaTest.Smoke
+Some required targets logged failures:
+- GeoDa.Weights
+error: build failed

@@ -2,24 +2,27 @@
 
 Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, together with the reduced
-forms of SAR and SEM under an invertibility assumption.
+forms of SAR and SEM under an invertibility assumption, and of the spatial
+weights predicates (nonnegativity, row standardization, islands) those models
+are stated over.
 
 **Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 25 main
+that no proof uses `sorry` or `admit`, and audits the axioms of all 43 main
 theorems (see [Verification](#verification) for the exact toolchain, command and
 observed output).
 
 ## Contents
 
 ```
-GeoDa.lean             root module
-GeoDa/GNS.lean         abstract version: W is an arbitrary ℝ-linear endomorphism
-GeoDa/Weights.lean     concrete version: W is a real n×n matrix; reduced forms
-GeoDa/Design.lean      design matrix X; Xβ and WXθ formed by matrix product
-GeoDaTest/Smoke.lean   compile-time tests (signature pins, explicit examples)
-GeoDaTest/Axioms.lean  axiom audit, driven by scripts/verify.sh
-scripts/verify.sh      the verification suite
-.github/workflows/     CI running the same suite
+GeoDa.lean                root module
+GeoDa/GNS.lean            abstract version: W is an arbitrary ℝ-linear endomorphism
+GeoDa/Weights.lean        concrete version: W is a real n×n matrix; reduced forms
+GeoDa/Design.lean         design matrix X; Xβ and WXθ formed by matrix product
+GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
+GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
+GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
+scripts/verify.sh         the verification suite
+.github/workflows/        CI running the same suite
 ```
 
 ## What is formalized
@@ -121,14 +124,56 @@ The results are:
 The design matrix `X` is arbitrary: no full-rank, centring or intercept-column
 assumption is made, and `k` need not be related to `n`.
 
+### Spatial weights (`GeoDa.SpatialWeights`)
+
+Everywhere above, `W` is an arbitrary real matrix. Real spatial weights are not
+arbitrary, and this file states the regularities as **explicit predicates**
+instead of baking them into the definitions:
+
+| predicate | meaning |
+| --- | --- |
+| `Nonneg W` | every entry is `≥ 0` |
+| `RowStochastic W` | every row sums to `1` |
+| `RowSubstochastic W` | every row sums to at most `1` |
+| `Island W i` | region `i` is a zero row — no neighbours |
+| `ZeroDiag W` | no region is its own neighbour |
+
+* `mulVec_one_apply`: `(W *ᵥ 1) i = ∑ j, W i j`, i.e. applying `W` to the
+  constant vector sums each row.
+* `rowStochastic_iff_mulVec_one`: `W *ᵥ 1 = 1` exactly for row-stochastic `W`.
+* `island_iff_rowSum_eq_zero`: for nonnegative `W`, a row is an island exactly
+  when its row sum vanishes; `not_rowStochastic_of_island` records that a
+  row-stochastic matrix therefore has no islands.
+* `normalize` divides each entry of row `i` by `∑ j, W i j`. **Islands are not a
+  special case in the code**: `ℝ`'s inverse is totalized by `(0 : ℝ)⁻¹ = 0`, so
+  a zero row is carried to a zero row rather than dividing by zero, and
+  `island_normalize` states exactly that. Normalization preserves nonnegativity
+  and a zero diagonal, and is always row-substochastic
+  (`rowSubstochastic_normalize`), with no hypothesis on `W` at all.
+* `rowStochastic_normalize_iff` / `rowStochastic_normalize_iff_pos`: for
+  nonnegative `W`, the normalized matrix is row-stochastic exactly when `W` has
+  no island, equivalently when every row sum is positive.
+
+**Symmetry and a zero diagonal are deliberately not assumed.** A zero diagonal
+is independent of row standardization in both directions, and both halves are
+proved: the identity is row-stochastic with a nonzero diagonal
+(`not_zeroDiag_one`), while `!![0, 1; 0, 0]` has a zero diagonal but a vanishing
+row (`GeoDaTest.wnotdiag_not_rowStochastic`).
+
 ## Scope and non-claims
 
 This is a formalization of *model equations*. It does **not** establish
 identifiability, estimator consistency, asymptotic distribution theory, or
 numerical correctness. It makes no novelty claim about the mathematics: the
-nesting results are textbook (Anselin), and the reduced-form statements are
-matrix algebra. `W` is an arbitrary real matrix — row standardization, symmetry,
-non-negativity and any other regularity of spatial weights are *not* assumed.
+nesting results are textbook (Anselin), the reduced-form statements are matrix
+algebra, and the weights predicates are elementary.
+
+In `GeoDa/GNS.lean`, `GeoDa/Weights.lean` and `GeoDa/Design.lean`, `W` is an
+arbitrary real matrix: row standardization, symmetry, nonnegativity and any other
+regularity of spatial weights are *not* assumed. `GeoDa/SpatialWeights.lean`
+makes those regularities available as predicates, but they remain hypotheses of
+individual theorems rather than global assumptions, and even there symmetry is
+never assumed and a zero diagonal is never assumed.
 
 `GeoDa/GNS.lean` still takes `Xβ` and `WXθ` as supplied vectors rather than forming
 them as matrix products; it is kept exactly as it was so that the theorem
@@ -151,13 +196,13 @@ and `lake-manifest.json`.
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
-Build completed successfully (1277 jobs).
+Build completed successfully (1314 jobs).
 ==> 2/3  no sorry / admit
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
-… (25 theorems, all on the same list)
-     ok: all 25 theorems depend only on [propext, Classical.choice, Quot.sound]
+… (43 theorems, all on the same list)
+     ok: all 43 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```
@@ -201,8 +246,11 @@ independently and the two versions compared.
 
 1. Prove the reduced forms under the weaker hypothesis `det (1 - ρ • W) ≠ 0`,
    connecting `IsUnit` to `Matrix.isUnit_iff_isUnit_det`.
-2. Row-standardized weights: prove `W ⬝ 1 = 1` type properties and the
-   invertibility of `1 - ρW` for `|ρ| < 1` (Neumann series / Gershgorin).
+2. Invertibility of `1 - ρW` for `|ρ| < 1` (Neumann series / Gershgorin). The
+   *row-sum* half of this is now available: `GeoDa.mulVec_one_apply` and
+   `GeoDa.rowStochastic_iff_mulVec_one` are the row-stochasticity statements the
+   convergence argument needs, and `GeoDa.RowSubstochastic` is the hypothesis
+   that makes the operator-norm bound go through.
 3. A GNS-level reduced form — eliminating both `u` and `y` — in the style of the
    SAR and SEM ones.
 4. Numerical cross-checks against PySAL `spreg`, now that `Xβ` and `WXθ` are

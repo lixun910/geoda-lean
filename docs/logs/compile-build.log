@@ -1,0 +1,56 @@
+✖ [1270/1277] Building GeoDa.GNS (1.8s)
+warning: GeoDa/GNS.lean: imports `Mathlib.Algebra.Module.LinearMap.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: GeoDa/GNS.lean: imports `Mathlib.Algebra.Module.Pi` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: GeoDa/GNS.lean: imports `Mathlib.Data.Real.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+trace: .> LEAN_PATH=/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/Cli/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/batteries/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/Qq/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/aesop/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/proofwidgets/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/importGraph/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/plausible/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/mathlib/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/lib/lean /sessions/zealous-gracious-wozniak/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lean /sessions/zealous-gracious-wozniak/scratch/geoda-lean/GeoDa/GNS.lean -o /sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/lib/lean/GeoDa/GNS.olean -i /sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/lib/lean/GeoDa/GNS.ilean -c /sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/ir/GeoDa/GNS.c --setup /sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/ir/GeoDa/GNS.setup.json --json
+warning: GeoDa/GNS.lean:7:0: 'Mathlib.Data.Real.Basic' has been deprecated: please replace this import by
+
+import Mathlib.Basic.Real.Basic
+error: GeoDa/GNS.lean:47:57: unexpected token 'λ'; expected ')'
+error: GeoDa/GNS.lean:56:52: unexpected token 'λ'; expected '_' or identifier
+error: GeoDa/GNS.lean:67:4: Function expected at
+  GNS
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  W
+
+Hint: The identifier `GNS` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+error: GeoDa/GNS.lean:68:8: Invalid argument: Variable `GNS` is not a proposition or let-declaration
+error: GeoDa/GNS.lean:67:55: unsolved goals
+n : ℕ
+x✝ : Sort u_1
+GNS : x✝
+W : Vec n →ₗ[ℝ] Vec n
+y xb u ε : Vec n
+ρ : ℝ
+⊢ sorry () ↔ y = ρ • W y + xb + ε ∧ u = ε
+error: GeoDa/GNS.lean:72:64: unexpected token 'λ'; expected '_' or identifier
+error: GeoDa/GNS.lean:79:4: Function expected at
+  GNS
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  W
+
+Hint: The identifier `GNS` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+error: GeoDa/GNS.lean:80:8: Invalid argument: Variable `GNS` is not a proposition or let-declaration
+error: GeoDa/GNS.lean:79:61: unsolved goals
+n : ℕ
+x✝ : Sort u_1
+GNS : x✝
+W : Vec n →ₗ[ℝ] Vec n
+y xb wxθ u ε : Vec n
+ρ : ℝ
+⊢ sorry () ↔ y = ρ • W y + xb + wxθ + ε ∧ u = ε
+⚠ [1271/1277] Ran GeoDa.Weights
+warning: GeoDa/Weights.lean: imports `Mathlib.Algebra.Group.Units.Basic` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: GeoDa/Weights.lean: imports `Mathlib.Data.Matrix.Mul` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+warning: GeoDa/Weights.lean: imports `Mathlib.Tactic.Abel` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+⚠ [1274/1277] Ran GeoDaTest.Smoke
+warning: GeoDaTest/Smoke.lean: imports `Mathlib.LinearAlgebra.Matrix.Notation` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file
+Some required targets logged failures:
+- GeoDa.GNS
+error: build failed
