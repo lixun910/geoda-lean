@@ -4,7 +4,7 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 43 theorems.
+**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 56 theorems.
 
 ## Layout
 
@@ -13,6 +13,7 @@ GeoDa.lean             root module (imports all four libraries)
 GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
 GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
 GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
+GeoDa/ReducedForm.lean full GNS reduced form: u = B⁻¹ε, y = A⁻¹(Xβ + WXθ + B⁻¹ε)
 GeoDa/SpatialWeights.lean  weights predicates (Nonneg, RowStochastic, Island, …)
                        and row normalization; no global assumptions added
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
@@ -29,11 +30,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-43 main theorems in `GeoDaTest/Axioms.lean` depend only on
+56 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 43 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 56 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -121,6 +122,12 @@ that module and its transitive imports — see the gotchas below.
 * **`Mathlib/LinearAlgebra/Matrix/Basic.lean` does not exist in v4.35** (split
   into `Defs.lean`, `Module.lean`, …). `Mathlib.Data.Real.Basic` is deprecated in
   favour of `Mathlib.Basic.Real.Basic`.
+* **Do not `rw [h]` a *self-referential* hypothesis into a goal that mentions both
+  sides.** For `h : v = c • (W *ᵥ v) + w`, `intro h; rw [h]; abel` substitutes `v`
+  *everywhere*, including on the right, and leaves a nested mess that `abel` cannot
+  close. Use `calc` instead — `calc v = c • (W *ᵥ v) + w := h; _ = … := by abel`.
+  Rewriting a hypothesis *at* another hypothesis (`rw [hu] at hy`) is fine; it is
+  the goal-level rewrite that bites.
 * **`Matrix.mulVec_one` is stated under
   `set_option backward.isDefEq.respectTransparency false`.** So `(W *ᵥ 1) i` is
   *not* definitionally `W i ⬝ᵥ 1` in an ordinary `exact`/`simpa`/`rw`, and
@@ -132,6 +139,10 @@ that module and its transitive imports — see the gotchas below.
   defines them in a `section` *outside* `namespace Matrix` (that file does
   `open Matrix` rather than nesting). The `⬝ᵥ` notation is root-level too. There
   is also no `Matrix.rowSum`, so `GeoDa.rowSum` is free.
+* **A file that imports `GeoDa.ReducedForm` also gains a root-level `normalize`,**
+  so a bare `normalize` in `GeoDaTest/Smoke.lean` becomes ambiguous with
+  `GeoDa.normalize` once both branches are present. Write `GeoDa.normalize`
+  explicitly in tests.
 * Passing a hypothesis like `hu : u = … u …` to `simp` loops (recursion depth).
 
 ## Provenance — keep this honest
@@ -186,7 +197,11 @@ What is left, roughly in order of value:
    row-stochastic `W`, and `RowSubstochastic` is the hypothesis the operator-norm
    bound wants.
 3. **A GNS-level reduced form.** Eliminate `u` and then `y` in GNS itself, under
-   invertibility of both `1 - ρW` and `1 - λW`.
+   invertibility of both `1 - ρW` and `1 - λW`. — **done**: see
+   `GeoDa/ReducedForm.lean`. `gnsDes_iff_reducedForm` and its explicit-inverse
+   and determinant variants give `u = B⁻¹ε`, `y = A⁻¹(Xβ + WXθ + B⁻¹ε)` as an
+   *iff* against `GNSDes`, keeping both equations; `sdmDes_iff_reducedForm` is
+   the `λ = 0` restriction. The hypothesis is still *stated*, not derived.
 4. **Numerical cross-checks against PySAL `spreg`.** The formal objects now
    coincide with what `spreg` computes, but nothing has been compared against a
    real implementation yet.
