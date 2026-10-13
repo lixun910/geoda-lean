@@ -1,13 +1,13 @@
 # GeoDa Lean: formalizing the GNS nesting of spatial econometric models
 
 Lean 4 + Mathlib formalization of the equation-level nesting of the General
-Nesting Spatial (GNS) model into SAR, SEM and SDM, together with the reduced
-forms of SAR and SEM under an invertibility assumption, and of the spatial
-weights predicates (nonnegativity, row standardization, islands) those models
-are stated over.
+Nesting Spatial (GNS) model into SAR, SEM and SDM, together with the full GNS
+reduced form and the SAR/SEM/SDM reduced forms under an invertibility
+assumption, and the spatial weights predicates (nonnegativity, row
+standardization, islands) those models are stated over.
 
 **Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 43 main
+that no proof uses `sorry` or `admit`, and audits the axioms of all 56 main
 theorems (see [Verification](#verification) for the exact toolchain, command and
 observed output).
 
@@ -18,6 +18,7 @@ GeoDa.lean                root module
 GeoDa/GNS.lean            abstract version: W is an arbitrary ℝ-linear endomorphism
 GeoDa/Weights.lean        concrete version: W is a real n×n matrix; reduced forms
 GeoDa/Design.lean         design matrix X; Xβ and WXθ formed by matrix product
+GeoDa/ReducedForm.lean    the full GNS reduced form, eliminating u and y together
 GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
 GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
@@ -124,6 +125,49 @@ The results are:
 The design matrix `X` is arbitrary: no full-rank, centring or intercept-column
 assumption is made, and `k` need not be related to `n`.
 
+### The full GNS reduced form (`GeoDa.ReducedForm`)
+
+`GeoDa.Design` proves the SAR and SEM reduced forms *separately* — one equation
+at a time. `GeoDa.ReducedForm` eliminates **both** latent quantities of GNS at
+once. With
+
+```
+A = 1 - ρW        B = 1 - λW
+```
+
+both invertible, the GNS system
+
+```
+y = ρWy + Xβ + WXθ + u        u = λWu + ε
+```
+
+is *equivalent* to
+
+```
+u = B⁻¹ ε
+y = A⁻¹ (Xβ + WXθ + B⁻¹ ε)
+```
+
+* `gnsDes_iff_reducedForm_of_inverse` : the workhorse, taking explicit two-sided
+  inverses `A` and `B` rather than `IsUnit` data.
+* `gnsDes_iff_reducedForm` : the `IsUnit` form, matching the convention of
+  `GeoDa.Weights`.
+* `gnsDes_iff_reducedForm_of_det_ne_zero` : the form an implementation actually
+  checks, `det (1 - ρW) ≠ 0` and `det (1 - λW) ≠ 0`, via
+  `isUnit_iff_det_ne_zero`.
+* `gnsDes_reducedForm` and `reducedForm_gnsDes` : the two implications named
+  separately. The reverse one is the substantive half: it says the reduced form
+  has neither dropped a solution nor introduced one, which is what licenses
+  treating it as *the* model.
+* `gnsDes_iff_mulVec` : GNS is a pair of linear systems,
+  `(1 - ρW)y = Xβ + WXθ + u` and `(1 - λW)u = ε`, both equations kept.
+* `sdmDes_iff_mulVec`, `sdmDes_iff_reducedForm` : the SDM restriction. SDM is GNS
+  with `λ = 0`, where `B = 1` and `u = ε`, so the reduced form collapses to
+  `y = (1 - ρW)⁻¹ (Xβ + WXθ + ε)`. (SAR and SEM are already in `GeoDa.Design`.)
+
+The hypothesis is *stated*, not derived: nothing here shows that `1 - ρW` is
+invertible, let alone for `|ρ| < 1`. See the [next steps](#next-steps).
+
 ### Spatial weights (`GeoDa.SpatialWeights`)
 
 Everywhere above, `W` is an arbitrary real matrix. Real spatial weights are not
@@ -196,13 +240,13 @@ and `lake-manifest.json`.
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
-Build completed successfully (1314 jobs).
+Build completed successfully (1810 jobs).
 ==> 2/3  no sorry / admit
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
-… (43 theorems, all on the same list)
-     ok: all 43 theorems depend only on [propext, Classical.choice, Quot.sound]
+… (56 theorems, all on the same list)
+     ok: all 56 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```
@@ -244,14 +288,14 @@ independently and the two versions compared.
 
 ## Next steps
 
-1. Prove the reduced forms under the weaker hypothesis `det (1 - ρ • W) ≠ 0`,
-   connecting `IsUnit` to `Matrix.isUnit_iff_isUnit_det`.
+1. State the *SAR and SEM* reduced forms under `det ≠ 0` as well. The GNS ones
+   already are (`gnsDes_iff_reducedForm_of_det_ne_zero`, via
+   `isUnit_iff_det_ne_zero`); the SAR/SEM theorems in `GeoDa.Weights` and
+   `GeoDa.Design` still take `IsUnit`.
 2. Invertibility of `1 - ρW` for `|ρ| < 1` (Neumann series / Gershgorin). The
-   *row-sum* half of this is now available: `GeoDa.mulVec_one_apply` and
-   `GeoDa.rowStochastic_iff_mulVec_one` are the row-stochasticity statements the
-   convergence argument needs, and `GeoDa.RowSubstochastic` is the hypothesis
-   that makes the operator-norm bound go through.
-3. A GNS-level reduced form — eliminating both `u` and `y` — in the style of the
-   SAR and SEM ones.
-4. Numerical cross-checks against PySAL `spreg`, now that `Xβ` and `WXθ` are
-   explicit matrix products.
+   *row-sum* half of this is now available in `GeoDa/SpatialWeights.lean`:
+   `GeoDa.mulVec_one_apply` and `GeoDa.rowStochastic_iff_mulVec_one` are the
+   row-stochasticity statements the convergence argument needs, and
+   `GeoDa.RowSubstochastic` is the hypothesis the operator-norm bound wants.
+3. Numerical cross-checks against PySAL `spreg`, now that `Xβ` and `WXθ` are
+   explicit matrix products and the reduced form covers GNS itself.

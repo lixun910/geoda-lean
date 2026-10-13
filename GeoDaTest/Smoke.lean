@@ -53,6 +53,22 @@ open GeoDa
 #check @GeoDa.semDes_iff_reducedForm
 #check @GeoDa.semDes_reducedForm_eq_sarDes_reducedForm_of_filtered
 
+/-! ### The full GNS reduced form: signature pins -/
+
+#check @GeoDa.one_sub_smul_mulVec_eq_iff
+#check @GeoDa.mulVec_eq_of_mulVec_eq
+#check @GeoDa.mulVec_eq_of_eq_mulVec
+#check @GeoDa.mulVec_eq_iff
+#check @GeoDa.gnsDes_iff_mulVec
+#check @GeoDa.gnsDes_iff_reducedForm_of_inverse
+#check @GeoDa.gnsDes_reducedForm
+#check @GeoDa.reducedForm_gnsDes
+#check @GeoDa.gnsDes_iff_reducedForm
+#check @GeoDa.isUnit_iff_det_ne_zero
+#check @GeoDa.gnsDes_iff_reducedForm_of_det_ne_zero
+#check @GeoDa.sdmDes_iff_mulVec
+#check @GeoDa.sdmDes_iff_reducedForm
+
 /-! ### Spatial weights: signature pins -/
 
 #check @GeoDa.mulVec_one_apply
@@ -141,6 +157,63 @@ example : (1 - (1/2 : ℝ) • (1 : WMat 1)) = (1/2 : ℝ) • (1 : WMat 1) := b
   fin_cases j
   norm_num [Matrix.sub_apply, Matrix.smul_apply, Matrix.one_apply]
 
+/-! ### The full GNS reduced form over the two-region model -/
+
+/-- **Explicit-inverse GNS reduced form at `n = 2`, `k = 1`.** With `W = Wswap`
+and `ρ = λ = 1/2`, both `1 - ρW` and `1 - λW` are `1 - (1/2)•Wswap`, whose
+two-sided inverse is `WswapInv` (`wswapInv_spec`). -/
+example (y u ε : Vec 2) (β θ : Vec 1) :
+    GNSDes Wswap X2 y β θ u ε (1/2) (1/2) ↔
+      (u = WswapInv *ᵥ ε ∧
+       y = WswapInv *ᵥ (X2 *ᵥ β + (Wswap * X2) *ᵥ θ + WswapInv *ᵥ ε)) :=
+  gnsDes_iff_reducedForm_of_inverse Wswap X2 y β θ u ε (1/2) (1/2)
+    WswapInv WswapInv wswapInv_spec.1 wswapInv_spec.2 wswapInv_spec.1 wswapInv_spec.2
+
+/-- The `IsUnit` form of the same theorem, at `n = 2`, `k = 1`. -/
+example (y u ε : Vec 2) (β θ : Vec 1) (h : IsUnit (1 - (1/2 : ℝ) • Wswap)) :
+    GNSDes Wswap X2 y β θ u ε (1/2) (1/2) ↔
+      (u = ↑(h.unit⁻¹) *ᵥ ε ∧
+       y = ↑(h.unit⁻¹) *ᵥ (X2 *ᵥ β + (Wswap * X2) *ᵥ θ + ↑(h.unit⁻¹) *ᵥ ε)) :=
+  gnsDes_iff_reducedForm Wswap X2 y β θ u ε (1/2) (1/2) h h
+
+/-- The two equations of the reduced form, computed by `norm_num`: with
+`β = ![3]`, `θ = ![-1]`, `ε = ![1, 1]` the disturbance is `u = ![2, 2]` and the
+outcome is `y = ![26/3, 34/3]`. -/
+theorem wswap_gns_reducedForm_values :
+    WswapInv *ᵥ (![1, 1] : Vec 2) = ![2, 2] ∧
+      WswapInv *ᵥ (X2 *ᵥ (![3] : Vec 1) + (Wswap * X2) *ᵥ (![-1] : Vec 1)
+        + WswapInv *ᵥ (![1, 1] : Vec 2)) = ![26/3, 34/3] := by
+  rw [wswap_mul_X2]
+  refine ⟨?_, ?_⟩ <;>
+    · ext i
+      fin_cases i <;>
+        rw [Matrix.mulVec_apply_eq_sum] <;>
+        simp [WswapInv, X2, Fin.sum_univ_two, Matrix.mulVec_apply_eq_sum] <;>
+        norm_num
+
+/-- The determinant hypothesis of `gnsDes_iff_reducedForm_of_det_ne_zero`: here
+`det (1 - (1/2)•Wswap) = 3/4`. -/
+theorem wswap_det_ne_zero : (1 - (1/2 : ℝ) • Wswap).det ≠ 0 := by
+  rw [Matrix.det_fin_two]
+  simp [Wswap, Matrix.sub_apply, Matrix.smul_apply, Matrix.one_apply]
+  norm_num
+
+/-- The determinant form of the full GNS reduced form, at `n = 2`, `k = 1`. -/
+example (y u ε : Vec 2) (β θ : Vec 1) :
+    GNSDes Wswap X2 y β θ u ε (1/2) (1/2) ↔
+      (u = ((1 - (1/2 : ℝ) • Wswap)⁻¹ : WMat 2) *ᵥ ε ∧
+       y = ((1 - (1/2 : ℝ) • Wswap)⁻¹ : WMat 2) *ᵥ
+             (X2 *ᵥ β + (Wswap * X2) *ᵥ θ
+               + ((1 - (1/2 : ℝ) • Wswap)⁻¹ : WMat 2) *ᵥ ε)) :=
+  gnsDes_iff_reducedForm_of_det_ne_zero Wswap X2 y β θ u ε (1/2) (1/2)
+    wswap_det_ne_zero wswap_det_ne_zero
+
+/-- The `λ = 0` restriction: the SDM reduced form, at `n = 2`, `k = 1`. -/
+example (y ε : Vec 2) (β θ : Vec 1) (h : IsUnit (1 - (1/2 : ℝ) • Wswap)) :
+    SDMDes Wswap X2 y β θ ε (1/2) ↔
+      y = ↑(h.unit⁻¹) *ᵥ (X2 *ᵥ β + (Wswap * X2) *ᵥ θ + ε) :=
+  sdmDes_iff_reducedForm Wswap X2 y ε β θ (1/2) h
+
 /-! ### Spatial weights: an island (§ "positive-row and island cases tested
 independently") -/
 
@@ -175,13 +248,13 @@ theorem wisland_not_rowStochastic : ¬ RowStochastic Wisland :=
 
 /-- Normalizing weights that contain an island changes nothing: the zero row is
 carried to a zero row rather than dividing by zero. -/
-theorem normalize_wisland : normalize Wisland = Wisland := by
+theorem normalize_wisland : GeoDa.normalize Wisland = Wisland := by
   ext i j
   fin_cases i <;> fin_cases j <;>
-    simp [Wisland, normalize, rowSum, Fin.sum_univ_two]
+    simp [Wisland, GeoDa.normalize, rowSum, Fin.sum_univ_two]
 
 /-- Consequently the normalized matrix is still not row-stochastic. -/
-example : ¬ RowStochastic (normalize Wisland) := by
+example : ¬ RowStochastic (GeoDa.normalize Wisland) := by
   rw [rowStochastic_normalize_iff Wisland wisland_nonneg]
   exact fun h => h 0 wisland_island
 
@@ -206,10 +279,10 @@ example : Wswap *ᵥ (1 : Vec 2) = 1 :=
   (rowStochastic_iff_mulVec_one Wswap).mp wswap_rowStochastic
 
 /-- Normalizing already row-stochastic weights is the identity. -/
-theorem normalize_wswap : normalize Wswap = Wswap := by
+theorem normalize_wswap : GeoDa.normalize Wswap = Wswap := by
   ext i j
   fin_cases i <;> fin_cases j <;>
-    simp [Wswap, normalize, rowSum, Fin.sum_univ_two]
+    simp [Wswap, GeoDa.normalize, rowSum, Fin.sum_univ_two]
 
 /-- Nonnegative weights whose rows are *not* normalized: rows sum to `3` and `7`. -/
 def Wpos : WMat 2 := !![1, 2; 3, 4]
@@ -219,16 +292,16 @@ theorem wpos_nonneg : Nonneg Wpos := by
   fin_cases i <;> fin_cases j <;> norm_num [Wpos]
 
 /-- Normalization turns positive rows into unit rows. -/
-theorem wpos_normalize_rowStochastic : RowStochastic (normalize Wpos) :=
+theorem wpos_normalize_rowStochastic : RowStochastic (GeoDa.normalize Wpos) :=
   (rowStochastic_normalize_iff_pos Wpos wpos_nonneg).mpr
     (by intro i; fin_cases i <;> norm_num [Wpos, rowSum, Fin.sum_univ_two])
 
 /-- The normalized positive-row matrix in explicit form: rows `[1/3, 2/3]` and
 `[3/7, 4/7]`. -/
-theorem normalize_wpos : normalize Wpos = !![1/3, 2/3; 3/7, 4/7] := by
+theorem normalize_wpos : GeoDa.normalize Wpos = !![1/3, 2/3; 3/7, 4/7] := by
   ext i j
   fin_cases i <;> fin_cases j <;>
-    norm_num [Wpos, normalize, rowSum, Fin.sum_univ_two]
+    norm_num [Wpos, GeoDa.normalize, rowSum, Fin.sum_univ_two]
 
 /-! ### Independence of row standardization and a zero diagonal -/
 

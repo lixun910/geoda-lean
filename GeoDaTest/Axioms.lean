@@ -41,6 +41,21 @@ user-introduced axiom.
 #print axioms GeoDa.semDes_iff_reducedForm
 #print axioms GeoDa.semDes_reducedForm_eq_sarDes_reducedForm_of_filtered
 
+-- GeoDa.ReducedForm: the full GNS reduced form
+#print axioms GeoDa.one_sub_smul_mulVec_eq_iff
+#print axioms GeoDa.mulVec_eq_of_mulVec_eq
+#print axioms GeoDa.mulVec_eq_of_eq_mulVec
+#print axioms GeoDa.mulVec_eq_iff
+#print axioms GeoDa.gnsDes_iff_mulVec
+#print axioms GeoDa.gnsDes_iff_reducedForm_of_inverse
+#print axioms GeoDa.gnsDes_reducedForm
+#print axioms GeoDa.reducedForm_gnsDes
+#print axioms GeoDa.gnsDes_iff_reducedForm
+#print axioms GeoDa.isUnit_iff_det_ne_zero
+#print axioms GeoDa.gnsDes_iff_reducedForm_of_det_ne_zero
+#print axioms GeoDa.sdmDes_iff_mulVec
+#print axioms GeoDa.sdmDes_iff_reducedForm
+
 -- GeoDa.SpatialWeights: weights predicates, row normalization, islands
 #print axioms GeoDa.mulVec_one_apply
 #print axioms GeoDa.rowStochastic_iff_mulVec_one
