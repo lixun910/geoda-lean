@@ -4,12 +4,12 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 63 theorems.
+**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 82 theorems.
 
 ## Layout
 
 ```
-GeoDa.lean             root module (imports all five libraries)
+GeoDa.lean             root module (imports all six libraries)
 GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
 GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
 GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
@@ -17,6 +17,7 @@ GeoDa/ReducedForm.lean full GNS reduced form: u = B⁻¹ε, y = A⁻¹(Xβ + WX�
 GeoDa/SpatialWeights.lean  weights predicates (Nonneg, RowStochastic, Island, …)
                        and row normalization; no global assumptions added
 GeoDa/Multiplier.lean  |ρ| < 1 ⇒ IsUnit (1 - ρ • W) from Nonneg + RowSubstochastic
+GeoDa/RandomVector.lean  probability layer: rvExp, rvCov, IsWhiteNoise, model moments
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
 scripts/verify.sh      build + no-sorry + axiom audit
@@ -31,11 +32,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-63 main theorems in `GeoDaTest/Axioms.lean` depend only on
+82 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 63 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 82 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -140,6 +141,19 @@ that module and its transitive imports — see the gotchas below.
   defines them in a `section` *outside* `namespace Matrix` (that file does
   `open Matrix` rather than nesting). The `⬝ᵥ` notation is root-level too. There
   is also no `Matrix.rowSum`, so `GeoDa.rowSum` is free.
+* **`IsProbabilityMeasure` is not a root-level name; `open MeasureTheory` first.**
+  `Measure` alone resolves at root, so `{μ : Measure Ω}` elaborates, but
+  `[IsProbabilityMeasure μ]` then fails with the baffling
+  "invalid binder annotation, type is not a class instance ?m.4". Add
+  `open MeasureTheory` in the section that needs it.
+* **`integral_congr_ae (Eventually.of_forall fun ω => ...)` hands you a beta-redex**
+  `(fun ω => ...) ω = (fun ω => ...) ω`, which `rw` will not match against the
+  integrand. Start the sub-proof with `show` in beta-reduced form.
+* **A scalar literal in a goal defaults to `ℕ`.** `2 • M` in a *statement* is
+  `(2 : ℕ) • M` unless you write `(2 : ℝ) • M`, and then `exact`ing a proof that
+  produced `(2 : ℝ) • M` fails on the scalar type. Write the cast out.
+* **`Matrix.mulVec_add` needs `add_comm` after it** whenever you are aiming at the
+  shape `A *ᵥ ε ω + c` that `GeoDa.rvExp_affine` and `GeoDa.rvCov_affine` expect.
 * **The `ℓ∞` norm on `Fin n → ℝ` and `norm_smul` are the only `Analysis` imports
   the project needs**, and their module paths are not where you would guess:
   `norm_le_pi_norm` and `pi_norm_le_iff_of_nonempty` live in
@@ -202,24 +216,23 @@ audit count only grew (12 → 25).
 
 What is left, roughly in order of value:
 
-1. **Reduced forms under `det ≠ 0`.** The hypothesis today is `IsUnit (1 - ρ • W)`;
-   connect it to `Matrix.isUnit_iff_isUnit_det` so the statements read in terms of
-   the determinant, which is what an implementation actually checks.
-2. **Invertibility of `1 - ρW` for `|ρ| < 1`.** — **done**: see
-   `GeoDa/Multiplier.lean`. For `Nonneg` + `RowSubstochastic` `W` it proves the
-   `ℓ∞` contraction `‖W *ᵥ v‖ ≤ ‖v‖`, injectivity of `1 - ρW` for `|ρ| < 1`, and
-   hence `IsUnit (1 - ρ • W)`; `sarMat_iff_reducedForm_of_rowSubstochastic` and
-   `semMat_iff_reducedForm_of_rowSubstochastic` are the bridges. Both hypotheses
-   are needed, with counterexamples in the tests, and islands are allowed.
-3. **A GNS-level reduced form.** Eliminate `u` and then `y` in GNS itself, under
-   invertibility of both `1 - ρW` and `1 - λW`. — **done**: see
-   `GeoDa/ReducedForm.lean`. `gnsDes_iff_reducedForm` and its explicit-inverse
-   and determinant variants give `u = B⁻¹ε`, `y = A⁻¹(Xβ + WXθ + B⁻¹ε)` as an
-   *iff* against `GNSDes`, keeping both equations; `sdmDes_iff_reducedForm` is
-   the `λ = 0` restriction. The hypothesis is still *stated*, not derived.
-4. **Numerical cross-checks against PySAL `spreg`.** The formal objects now
-   coincide with what `spreg` computes, but nothing has been compared against a
-   real implementation yet.
+1. **A multivariate normal innovation, and a likelihood built on it.** The
+   probability layer in `GeoDa/RandomVector.lean` stops at two moments
+   (`IsWhiteNoise`); fixing a distribution is strictly stronger and should stay a
+   separate claim. This is the stretch goal of the P1.1 issue, not started.
+2. **Numerical cross-checks against PySAL `spreg`.** The formal objects now
+   coincide with what `spreg` computes — `Xβ` and `WXθ` are matrix products, the
+   reduced form covers GNS itself, and the invertibility hypothesis is discharged
+   from `|ρ| < 1` plus the weights — but nothing has been compared against a real
+   implementation yet.
+3. **SAR and SEM reduced forms under `det ≠ 0`.** The GNS ones are already
+   (`gnsDes_iff_reducedForm_of_det_ne_zero`, via `isUnit_iff_det_ne_zero`), and
+   `GeoDa.Multiplier` derives the hypothesis from the weights for SAR and SEM;
+   the theorems in `GeoDa.Weights` and `GeoDa.Design` still take `IsUnit` directly.
+
+Already done, for the record: P0.1 `GeoDa/SpatialWeights.lean`, P0.2
+`GeoDa/Multiplier.lean`, P0.3 `GeoDa/ReducedForm.lean`, P1.1 (moment half)
+`GeoDa/RandomVector.lean`.
 
 Same acceptance criteria as always: `./scripts/verify.sh` exits 0, no `sorry`, no
 new axiom, new main theorems pinned in `Smoke.lean` and audited in `Axioms.lean`,
