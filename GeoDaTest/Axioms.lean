@@ -40,3 +40,23 @@ user-introduced axiom.
 #print axioms GeoDa.sarDes_iff_reducedForm
 #print axioms GeoDa.semDes_iff_reducedForm
 #print axioms GeoDa.semDes_reducedForm_eq_sarDes_reducedForm_of_filtered
+
+-- GeoDa.SpatialWeights: weights predicates, row normalization, islands
+#print axioms GeoDa.mulVec_one_apply
+#print axioms GeoDa.rowStochastic_iff_mulVec_one
+#print axioms GeoDa.rowSum_nonneg
+#print axioms GeoDa.rowSubstochastic_of_rowStochastic
+#print axioms GeoDa.rowSum_eq_zero_of_island
+#print axioms GeoDa.island_iff_rowSum_eq_zero
+#print axioms GeoDa.not_rowStochastic_of_island
+#print axioms GeoDa.rowStochastic_one
+#print axioms GeoDa.nonneg_one
+#print axioms GeoDa.not_zeroDiag_one
+#print axioms GeoDa.rowSum_normalize
+#print axioms GeoDa.rowStochastic_normalize_of_ne_zero
+#print axioms GeoDa.island_normalize
+#print axioms GeoDa.nonneg_normalize
+#print axioms GeoDa.zeroDiag_normalize
+#print axioms GeoDa.rowSubstochastic_normalize
+#print axioms GeoDa.rowStochastic_normalize_iff
+#print axioms GeoDa.rowStochastic_normalize_iff_pos

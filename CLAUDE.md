@@ -4,15 +4,17 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 25 theorems.
+**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 43 theorems.
 
 ## Layout
 
 ```
-GeoDa.lean             root module (imports all three libraries)
+GeoDa.lean             root module (imports all four libraries)
 GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
 GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
 GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
+GeoDa/SpatialWeights.lean  weights predicates (Nonneg, RowStochastic, Island, …)
+                       and row normalization; no global assumptions added
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
 scripts/verify.sh      build + no-sorry + axiom audit
@@ -27,11 +29,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-25 main theorems in `GeoDaTest/Axioms.lean` depend only on
+43 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 25 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 43 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -119,6 +121,17 @@ that module and its transitive imports — see the gotchas below.
 * **`Mathlib/LinearAlgebra/Matrix/Basic.lean` does not exist in v4.35** (split
   into `Defs.lean`, `Module.lean`, …). `Mathlib.Data.Real.Basic` is deprecated in
   favour of `Mathlib.Basic.Real.Basic`.
+* **`Matrix.mulVec_one` is stated under
+  `set_option backward.isDefEq.respectTransparency false`.** So `(W *ᵥ 1) i` is
+  *not* definitionally `W i ⬝ᵥ 1` in an ordinary `exact`/`simpa`/`rw`, and
+  `Matrix.mulVec_one` itself will not unfold `(W *ᵥ 1) i` for you. Use
+  **`Matrix.mulVec_apply_eq_sum : (M *ᵥ v) i = ∑ j, M i j * v j`**, which is
+  `rfl`-proved — that is the right entry point for any row-sum argument.
+* **`dotProduct` and `dotProduct_one` are *root-level* names**, not
+  `Matrix.dotProduct` / `Matrix.dotProduct_one`: `Mathlib/Data/Matrix/Mul.lean`
+  defines them in a `section` *outside* `namespace Matrix` (that file does
+  `open Matrix` rather than nesting). The `⬝ᵥ` notation is root-level too. There
+  is also no `Matrix.rowSum`, so `GeoDa.rowSum` is free.
 * Passing a hypothesis like `hu : u = … u …` to `simp` loops (recursion depth).
 
 ## Provenance — keep this honest
@@ -135,8 +148,15 @@ Do not quietly present this work as Codex's, and do not delete that note.
 * These are statements about *model equations*. Nothing here establishes
   identifiability, estimator consistency, asymptotic theory or numerical
   correctness, and nothing here is claimed to be novel.
-* `W` is an arbitrary real matrix: row standardization, symmetry and
-  non-negativity are **not** assumed.
+* `W` is an arbitrary real matrix in `GNS.lean`/`Weights.lean`/`Design.lean`:
+  row standardization, symmetry and non-negativity are **not** assumed.
+  `SpatialWeights.lean` names those regularities as predicates (`Nonneg`,
+  `RowStochastic`, `RowSubstochastic`, `Island`, `ZeroDiag`) so they can be
+  *hypotheses*, but they are still not global assumptions, and even there
+  symmetry is never assumed. Row standardization does not imply a zero diagonal
+  and a zero diagonal does not imply row standardization; both directions are
+  proved, so do not silently assume either. Islands are handled by a totalized
+  inverse (`(0 : ℝ)⁻¹ = 0`), not by a side condition on `normalize`.
 * **SAR and SEM are not observationally equivalent in general.**
   `reducedForm_eq_iff_inverse_eq_one` shows the reduced forms agree for all
   `(Xβ, ε)` exactly when the inverse matrix is the identity (i.e. `ρW = λW = 0`).
@@ -160,10 +180,11 @@ What is left, roughly in order of value:
 1. **Reduced forms under `det ≠ 0`.** The hypothesis today is `IsUnit (1 - ρ • W)`;
    connect it to `Matrix.isUnit_iff_isUnit_det` so the statements read in terms of
    the determinant, which is what an implementation actually checks.
-2. **Row-standardized weights.** Prove `W ⬝ 1 = 1`-type properties and
-   invertibility of `1 - ρW` for `|ρ| < 1` (Neumann series / Gershgorin radius).
-   This is the first place a regularity assumption on `W` would enter; everything
-   so far is assumption-free in `W`.
+2. **Invertibility of `1 - ρW` for `|ρ| < 1`** (Neumann series / Gershgorin
+   radius). The *row-sum* half is now in place in `GeoDa/SpatialWeights.lean`:
+   `mulVec_one_apply`, `rowStochastic_iff_mulVec_one` give `W *ᵥ 1 = 1` for
+   row-stochastic `W`, and `RowSubstochastic` is the hypothesis the operator-norm
+   bound wants.
 3. **A GNS-level reduced form.** Eliminate `u` and then `y` in GNS itself, under
    invertibility of both `1 - ρW` and `1 - λW`.
 4. **Numerical cross-checks against PySAL `spreg`.** The formal objects now
