@@ -1,0 +1,83 @@
+{
+  "cell": {
+    "beta": [
+      1.0,
+      1.0,
+      -0.5
+    ],
+    "estimator": "ML_Error",
+    "islands": false,
+    "k": 3,
+    "lam": 0.8,
+    "model": "sem",
+    "n": 49,
+    "n_side": 7,
+    "reps": 50,
+    "rho": 0.8,
+    "seed_base": 20261013,
+    "theta": 0.6
+  },
+  "estimator": {
+    "callable": "spreg.ML_Error",
+    "layout": [
+      "beta",
+      "lam"
+    ],
+    "name": "ML_Error",
+    "no_se": [],
+    "note": "maximum likelihood for y = X\u03b2 + u, u = \u03bbWu + \u03b5"
+  },
+  "failures": 0,
+  "label": "sem-ML_Error-n49-rho0.8-lam0.8",
+  "names": [
+    "beta0",
+    "beta1",
+    "beta2",
+    "lam"
+  ],
+  "reps_requested": 50,
+  "reps_used": 50,
+  "rows": [
+    {
+      "bias": -0.02628365232415729,
+      "coverage": 0.9,
+      "mean_std_err": 0.6077107466100664,
+      "n_used": 50,
+      "parameter": "beta0",
+      "rmse": 0.7026301938820774,
+      "se_reported": true,
+      "true_value": 1.0
+    },
+    {
+      "bias": 0.011900622463525367,
+      "coverage": 0.98,
+      "mean_std_err": 0.13513863921827032,
+      "n_used": 50,
+      "parameter": "beta1",
+      "rmse": 0.12849679991269186,
+      "se_reported": true,
+      "true_value": 1.0
+    },
+    {
+      "bias": 0.007396153583683352,
+      "coverage": 0.9,
+      "mean_std_err": 0.13350048108538573,
+      "n_used": 50,
+      "parameter": "beta2",
+      "rmse": 0.17083878905099015,
+      "se_reported": true,
+      "true_value": -0.5
+    },
+    {
+      "bias": -0.05421631420143021,
+      "coverage": 0.96,
+      "mean_std_err": 0.09557044626390233,
+      "n_used": 50,
+      "parameter": "lam",
+      "rmse": 0.1036030089800275,
+      "se_reported": true,
+      "true_value": 0.8
+    }
+  ],
+  "seconds": 0.1663496249821037
+}

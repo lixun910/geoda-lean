@@ -1,0 +1,83 @@
+{
+  "cell": {
+    "beta": [
+      1.0,
+      1.0,
+      -0.5
+    ],
+    "estimator": "ML_Lag",
+    "islands": false,
+    "k": 3,
+    "lam": 0.8,
+    "model": "sar",
+    "n": 49,
+    "n_side": 7,
+    "reps": 50,
+    "rho": 0.8,
+    "seed_base": 20261013,
+    "theta": 0.6
+  },
+  "estimator": {
+    "callable": "spreg.ML_Lag",
+    "layout": [
+      "beta",
+      "rho"
+    ],
+    "name": "ML_Lag",
+    "no_se": [],
+    "note": "maximum likelihood for y = \u03c1Wy + X\u03b2 + \u03b5"
+  },
+  "failures": 0,
+  "label": "sar-ML_Lag-n49-rho0.8-lam0.8",
+  "names": [
+    "beta0",
+    "beta1",
+    "beta2",
+    "rho"
+  ],
+  "reps_requested": 50,
+  "reps_used": 50,
+  "rows": [
+    {
+      "bias": 0.28343950726270767,
+      "coverage": 0.9,
+      "mean_std_err": 0.43111655655987186,
+      "n_used": 50,
+      "parameter": "beta0",
+      "rmse": 0.6398378653131639,
+      "se_reported": true,
+      "true_value": 1.0
+    },
+    {
+      "bias": 0.023280856056558066,
+      "coverage": 0.94,
+      "mean_std_err": 0.14696446444466404,
+      "n_used": 50,
+      "parameter": "beta1",
+      "rmse": 0.14504614293495155,
+      "se_reported": true,
+      "true_value": 1.0
+    },
+    {
+      "bias": 0.0027591614664332375,
+      "coverage": 0.9,
+      "mean_std_err": 0.1441899808442994,
+      "n_used": 50,
+      "parameter": "beta2",
+      "rmse": 0.16979281495386767,
+      "se_reported": true,
+      "true_value": -0.5
+    },
+    {
+      "bias": -0.055197306425279466,
+      "coverage": 0.9,
+      "mean_std_err": 0.07925828217010288,
+      "n_used": 50,
+      "parameter": "rho",
+      "rmse": 0.11886511736567214,
+      "se_reported": true,
+      "true_value": 0.8
+    }
+  ],
+  "seconds": 0.20369662495795637
+}

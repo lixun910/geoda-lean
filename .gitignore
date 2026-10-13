@@ -7,3 +7,7 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .venv/
+
+# Opt-in extended Monte Carlo outputs; the CI-scale smoke run under
+# validation/benchmark/results/smoke/ is committed.
+validation/benchmark/results/extended/

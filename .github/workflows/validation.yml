@@ -1,8 +1,9 @@
 name: Validation
 
 # Numerical cross-checks of the formulas in `GeoDa/` against NumPy, SciPy and PySAL
-# `spreg`. Kept in its own workflow, and its own job, so that it stays lightweight and
-# so that it is never confused with the verification.
+# `spreg`, plus a CI-scale Monte Carlo smoke run of the `spreg` estimators. Kept in its
+# own workflow, and its own job, so that it stays lightweight and so that it is never
+# confused with the verification.
 #
 # This job is a *second opinion* on the formulas, not the proof. The verification is
 # `./scripts/verify.sh`, run by the `Lean` workflow: that is what establishes the
@@ -38,3 +39,9 @@ jobs:
 
       - name: Numerical cross-checks against the Lean formulas
         run: python -m pytest validation -q
+
+      # CI-scale Monte Carlo smoke run. Empirical, and like everything in this
+      # workflow it is not verification: it reports bias/RMSE/coverage for `spreg`
+      # estimators, which says nothing about any Lean theorem.
+      - name: Monte Carlo benchmark (CI-scale smoke run)
+        run: python validation/benchmark/benchmark.py --smoke
