@@ -176,16 +176,24 @@ with `EXPECTED_COUNT` in `scripts/verify.sh` bumped to match.
 
 ## Open items
 
-* **CI has now been observed to pass — once.** `Lean` run `38438326129` on `main`
-  (commit `f9d7ed1`) completed green in 3 m 30 s on 2026-10-13. That is the only
-  run in the repository's history as of this writing, and it was triggered by
-  `push` to `main`. Two things to know before relying on it:
+* **CI passes, but only three runs have ever existed — all green.** All on
+  2026-10-13:
+  * `38438326129` on `main`, commit `f9d7ed1`, triggered by `push`, 3 m 30 s;
+  * `38440891935` on `claude/design-matrix-xb-wxtheta-d2c9d3`, commit `d8b99cb`,
+    `workflow_dispatch`, 4 m 17 s;
+  * `38441896644` on the same branch, commit `0f3a785` (the `GeoDa/Design.lean`
+    work), `workflow_dispatch`, 3 m 35 s — its log ends
+    `ok: all 25 theorems depend only on [propext, Classical.choice, Quot.sound]`
+    then `VERIFICATION SUCCEEDED`.
+
+  Things to know before relying on it:
   * the workflow triggers only on `push` to `main`/`master`, on `pull_request`, and
-    on `workflow_dispatch` — a plain push of a feature branch starts nothing, so
-    use `gh workflow run lean.yml --ref <branch>` to exercise CI on a branch;
-  * the green run carries a non-fatal annotation on the action's cache-save step
-    (`Failed to save: "/usr/bin/tar" failed with error ... exit code 2`). It did not
-    fail the job.
+    on `workflow_dispatch` — pushing a feature branch starts *nothing*. Use
+    `gh workflow run lean.yml --ref <branch>` to exercise CI on a branch; that is
+    how the two branch runs above were started.
+  * the runs carry two non-fatal annotations — the action's cache-save step
+    (`Failed to save: "/usr/bin/tar" failed with error ... exit code 2`) and a
+    Node.js 20 deprecation notice. Neither fails the job.
 * Local `./scripts/verify.sh` is the load-bearing evidence; CI is a second opinion
   on a different machine.
 * The README, this file and the sources are kept in step; when the theorems change,

@@ -167,8 +167,12 @@ Every main theorem depends only on Lean's three standard axioms; none depends on
 
 CI (`.github/workflows/lean.yml`) runs the same suite on GitHub-hosted runners via
 `leanprover/lean-action`, which installs the pinned toolchain, fetches the Mathlib
-cache and builds. It has been observed to pass: run `38438326129` on `main`
-(commit `f9d7ed1`) completed green in 3 m 30 s on 2026-10-13.
+cache and builds. Every run made so far has been green, including run `38441896644`
+on the design-matrix commit `0f3a785`, whose log ends with
+`ok: all 25 theorems depend only on [propext, Classical.choice, Quot.sound]` and
+`VERIFICATION SUCCEEDED`. Note that the workflow triggers only on `push` to
+`main`/`master`, on `pull_request` and on `workflow_dispatch` — pushing a feature
+branch on its own starts nothing.
 
 ## Provenance
 
