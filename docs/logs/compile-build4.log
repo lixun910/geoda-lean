@@ -1,0 +1,41 @@
+⚠ [842/1166] Replayed GeoDa.GNS
+✖ [1270/1276] Building GeoDa.Weights (884ms)
+error: GeoDa/Weights.lean:45:14: expected token
+error: GeoDa/Weights.lean:49:14: expected token
+error: GeoDa/Weights.lean:53:29: expected token
+error: GeoDa/Weights.lean:57:14: expected token
+error: GeoDa/Weights.lean:63:61: unsolved goals
+n : ℕ
+W : WMat n
+y xb u ε : Vec n
+ρ : ℝ
+⊢ sorry W y xb 0 u ε ρ 0 ↔ sorry W y xb ε ρ ∧ u = ε
+warning: GeoDa/Weights.lean:64:8: declaration uses `sorry`
+warning: GeoDa/Weights.lean:64:16: declaration uses `sorry`
+error: GeoDa/Weights.lean:68:57: unsolved goals
+n : ℕ
+W : WMat n
+y xb u ε : Vec n
+lam : ℝ
+⊢ sorry W y xb 0 u ε 0 lam ↔ sorry W y xb u ε lam
+warning: GeoDa/Weights.lean:69:8: declaration uses `sorry`
+warning: GeoDa/Weights.lean:69:16: declaration uses `sorry`
+error: GeoDa/Weights.lean:73:67: unsolved goals
+n : ℕ
+W : WMat n
+y xb wxθ u ε : Vec n
+ρ : ℝ
+⊢ sorry W y xb wxθ u ε ρ 0 ↔ sorry W y xb wxθ ε ρ ∧ u = ε
+warning: GeoDa/Weights.lean:74:8: declaration uses `sorry`
+warning: GeoDa/Weights.lean:74:16: declaration uses `sorry`
+error: GeoDa/Weights.lean:80:17: expected token
+error: GeoDa/Weights.lean:85:37: expected token
+error: GeoDa/Weights.lean:95:44: expected token
+error: GeoDa/Weights.lean:112:41: expected token
+error: GeoDa/Weights.lean:130:24: expected token
+error: GeoDa/Weights.lean:149:22: expected token
+error: GeoDa/Weights.lean:158:35: expected token
+⚠ [1273/1276] Ran GeoDaTest.Smoke
+Some required targets logged failures:
+- GeoDa.Weights
+error: build failed

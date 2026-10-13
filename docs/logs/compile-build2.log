@@ -1,0 +1,17 @@
+✖ [1269/1276] Building GeoDa.GNS (523ms)
+trace: .> LEAN_PATH=/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/Cli/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/batteries/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/Qq/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/aesop/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/proofwidgets/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/importGraph/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/LeanSearchClient/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/plausible/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/packages/mathlib/.lake/build/lib/lean:/sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/lib/lean /sessions/zealous-gracious-wozniak/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lean /sessions/zealous-gracious-wozniak/scratch/geoda-lean/GeoDa/GNS.lean -o /sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/lib/lean/GeoDa/GNS.olean -i /sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/lib/lean/GeoDa/GNS.ilean -c /sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/ir/GeoDa/GNS.c --setup /sessions/zealous-gracious-wozniak/scratch/geoda-lean/.lake/build/ir/GeoDa/GNS.setup.json --json
+error: GeoDa/GNS.lean:69:55: unsolved goals
+n : ℕ
+W : Vec n →ₗ[ℝ] Vec n
+y xb u ε : Vec n
+ρ : ℝ
+⊢ u = ε → (y = ρ • W y + xb + u ↔ y = ρ • W y + xb + ε)
+error: GeoDa/GNS.lean:81:61: unsolved goals
+n : ℕ
+W : Vec n →ₗ[ℝ] Vec n
+y xb wxθ u ε : Vec n
+ρ : ℝ
+⊢ u = ε → (y = ρ • W y + xb + wxθ + u ↔ y = ρ • W y + xb + wxθ + ε)
+Some required targets logged failures:
+- GeoDa.GNS
+error: build failed

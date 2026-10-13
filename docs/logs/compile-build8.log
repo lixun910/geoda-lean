@@ -1,0 +1,207 @@
+⚠ [842/1117] Replayed GeoDa.GNS
+✖ [1270/1276] Building GeoDa.Weights (786ms)
+error: GeoDa/Weights.lean:157:8: Tactic `rewrite` failed: motive is not type correct:
+  fun _a => ↑h.unit⁻¹ * _a = 1
+Error: Application type mismatch: The argument
+  h
+has type
+  IsUnit (1 - ρ • W)
+but is expected to have type
+  IsUnit _a
+in the application
+  h.unit
+
+Explanation: The rewrite tactic rewrites an expression 'e' using an equality 'a = b' by the following process. First, it looks for all 'a' in 'e'. Second, it tries to abstract these occurrences of 'a' to create a function 'm := fun _a => ...', called the *motive*, with the property that 'm a' is definitionally equal to 'e'. Third, we observe that 'congrArg' implies that 'm a = m b', which can be used with lemmas such as 'Eq.mpr' to change the goal. However, if 'e' depends on specific properties of 'a', then the motive 'm' might not typecheck.
+
+Possible solutions: use rewrite's 'occs' configuration option to limit which occurrences are rewritten, or use 'simp' or 'conv' mode, which have strategies for certain kinds of dependencies (these tactics can handle proofs and 'Decidable' instances whose types depend on the rewritten term, and 'simp' can apply user-defined '@[congr]' theorems as well).
+
+n : ℕ
+W : WMat n
+y xb ε : Vec n
+ρ : ℝ
+h : IsUnit (1 - ρ • W)
+⊢ ↑h.unit⁻¹ * (1 - ρ • W) = 1
+error: GeoDa/Weights.lean:159:8: Tactic `rewrite` failed: motive is not type correct:
+  fun _a => _a * ↑h.unit⁻¹ = 1
+Error: Application type mismatch: The argument
+  h
+has type
+  IsUnit (1 - ρ • W)
+but is expected to have type
+  IsUnit _a
+in the application
+  h.unit
+
+Explanation: The rewrite tactic rewrites an expression 'e' using an equality 'a = b' by the following process. First, it looks for all 'a' in 'e'. Second, it tries to abstract these occurrences of 'a' to create a function 'm := fun _a => ...', called the *motive*, with the property that 'm a' is definitionally equal to 'e'. Third, we observe that 'congrArg' implies that 'm a = m b', which can be used with lemmas such as 'Eq.mpr' to change the goal. However, if 'e' depends on specific properties of 'a', then the motive 'm' might not typecheck.
+
+Possible solutions: use rewrite's 'occs' configuration option to limit which occurrences are rewritten, or use 'simp' or 'conv' mode, which have strategies for certain kinds of dependencies (these tactics can handle proofs and 'Decidable' instances whose types depend on the rewritten term, and 'simp' can apply user-defined '@[congr]' theorems as well).
+
+n : ℕ
+W : WMat n
+y xb ε : Vec n
+ρ : ℝ
+h : IsUnit (1 - ρ • W)
+hB : ↑h.unit⁻¹ * (1 - ρ • W) = 1
+⊢ (1 - ρ • W) * ↑h.unit⁻¹ = 1
+error: GeoDa/Weights.lean:165:8: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (?M * ?N) *ᵥ ?v
+in the target expression
+  ↑h.unit⁻¹ *ᵥ (1 - ρ • W) *ᵥ y = ↑h.unit⁻¹ *ᵥ (xb + ε)
+
+case mp
+n : ℕ
+W : WMat n
+y xb ε : Vec n
+ρ : ℝ
+h : IsUnit (1 - ρ • W)
+hB : ↑h.unit⁻¹ * (1 - ρ • W) = 1
+hB' : (1 - ρ • W) * ↑h.unit⁻¹ = 1
+hmv : (1 - ρ • W) *ᵥ y = xb + ε
+h1 : ↑h.unit⁻¹ *ᵥ (1 - ρ • W) *ᵥ y = ↑h.unit⁻¹ *ᵥ (xb + ε)
+⊢ y = ↑h.unit⁻¹ *ᵥ (xb + ε)
+error: GeoDa/Weights.lean:170:8: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (?M * ?N) *ᵥ ?v
+in the target expression
+  (1 - ρ • W) *ᵥ y = (1 - ρ • W) *ᵥ ↑h.unit⁻¹ *ᵥ (xb + ε)
+
+case mpr
+n : ℕ
+W : WMat n
+y xb ε : Vec n
+ρ : ℝ
+h : IsUnit (1 - ρ • W)
+hB : ↑h.unit⁻¹ * (1 - ρ • W) = 1
+hB' : (1 - ρ • W) * ↑h.unit⁻¹ = 1
+hy : y = ↑h.unit⁻¹ *ᵥ (xb + ε)
+h1 : (1 - ρ • W) *ᵥ y = (1 - ρ • W) *ᵥ ↑h.unit⁻¹ *ᵥ (xb + ε)
+⊢ (1 - ρ • W) *ᵥ y = xb + ε
+error: GeoDa/Weights.lean:181:8: Tactic `rewrite` failed: motive is not type correct:
+  fun _a => ↑h.unit⁻¹ * _a = 1
+Error: Application type mismatch: The argument
+  h
+has type
+  IsUnit (1 - lam • W)
+but is expected to have type
+  IsUnit _a
+in the application
+  h.unit
+
+Explanation: The rewrite tactic rewrites an expression 'e' using an equality 'a = b' by the following process. First, it looks for all 'a' in 'e'. Second, it tries to abstract these occurrences of 'a' to create a function 'm := fun _a => ...', called the *motive*, with the property that 'm a' is definitionally equal to 'e'. Third, we observe that 'congrArg' implies that 'm a = m b', which can be used with lemmas such as 'Eq.mpr' to change the goal. However, if 'e' depends on specific properties of 'a', then the motive 'm' might not typecheck.
+
+Possible solutions: use rewrite's 'occs' configuration option to limit which occurrences are rewritten, or use 'simp' or 'conv' mode, which have strategies for certain kinds of dependencies (these tactics can handle proofs and 'Decidable' instances whose types depend on the rewritten term, and 'simp' can apply user-defined '@[congr]' theorems as well).
+
+n : ℕ
+W : WMat n
+y xb u ε : Vec n
+lam : ℝ
+h : IsUnit (1 - lam • W)
+⊢ ↑h.unit⁻¹ * (1 - lam • W) = 1
+error: GeoDa/Weights.lean:183:8: Tactic `rewrite` failed: motive is not type correct:
+  fun _a => _a * ↑h.unit⁻¹ = 1
+Error: Application type mismatch: The argument
+  h
+has type
+  IsUnit (1 - lam • W)
+but is expected to have type
+  IsUnit _a
+in the application
+  h.unit
+
+Explanation: The rewrite tactic rewrites an expression 'e' using an equality 'a = b' by the following process. First, it looks for all 'a' in 'e'. Second, it tries to abstract these occurrences of 'a' to create a function 'm := fun _a => ...', called the *motive*, with the property that 'm a' is definitionally equal to 'e'. Third, we observe that 'congrArg' implies that 'm a = m b', which can be used with lemmas such as 'Eq.mpr' to change the goal. However, if 'e' depends on specific properties of 'a', then the motive 'm' might not typecheck.
+
+Possible solutions: use rewrite's 'occs' configuration option to limit which occurrences are rewritten, or use 'simp' or 'conv' mode, which have strategies for certain kinds of dependencies (these tactics can handle proofs and 'Decidable' instances whose types depend on the rewritten term, and 'simp' can apply user-defined '@[congr]' theorems as well).
+
+n : ℕ
+W : WMat n
+y xb u ε : Vec n
+lam : ℝ
+h : IsUnit (1 - lam • W)
+hB : ↑h.unit⁻¹ * (1 - lam • W) = 1
+⊢ (1 - lam • W) * ↑h.unit⁻¹ = 1
+error: GeoDa/Weights.lean:189:8: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (?M * ?N) *ᵥ ?v
+in the target expression
+  ↑h.unit⁻¹ *ᵥ (1 - lam • W) *ᵥ u = ↑h.unit⁻¹ *ᵥ ε
+
+case mp
+n : ℕ
+W : WMat n
+y xb u ε : Vec n
+lam : ℝ
+h : IsUnit (1 - lam • W)
+hB : ↑h.unit⁻¹ * (1 - lam • W) = 1
+hB' : (1 - lam • W) * ↑h.unit⁻¹ = 1
+hu : (1 - lam • W) *ᵥ u = ε
+hy : y = xb + u
+h1 : ↑h.unit⁻¹ *ᵥ (1 - lam • W) *ᵥ u = ↑h.unit⁻¹ *ᵥ ε
+⊢ u = ↑h.unit⁻¹ *ᵥ ε ∧ y = xb + ↑h.unit⁻¹ *ᵥ ε
+error: GeoDa/Weights.lean:194:8: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (?M * ?N) *ᵥ ?v
+in the target expression
+  (1 - lam • W) *ᵥ u = (1 - lam • W) *ᵥ ↑h.unit⁻¹ *ᵥ ε
+
+case mpr
+n : ℕ
+W : WMat n
+y xb u ε : Vec n
+lam : ℝ
+h : IsUnit (1 - lam • W)
+hB : ↑h.unit⁻¹ * (1 - lam • W) = 1
+hB' : (1 - lam • W) * ↑h.unit⁻¹ = 1
+hu : u = ↑h.unit⁻¹ *ᵥ ε
+hy : y = xb + ↑h.unit⁻¹ *ᵥ ε
+h1 : (1 - lam • W) *ᵥ u = (1 - lam • W) *ᵥ ↑h.unit⁻¹ *ᵥ ε
+⊢ (1 - lam • W) *ᵥ u = ε ∧ y = xb + u
+error: GeoDa/Weights.lean:207:8: Tactic `rewrite` failed: motive is not type correct:
+  fun _a => ↑h.unit⁻¹ * _a = 1
+Error: Application type mismatch: The argument
+  h
+has type
+  IsUnit (1 - lam • W)
+but is expected to have type
+  IsUnit _a
+in the application
+  h.unit
+
+Explanation: The rewrite tactic rewrites an expression 'e' using an equality 'a = b' by the following process. First, it looks for all 'a' in 'e'. Second, it tries to abstract these occurrences of 'a' to create a function 'm := fun _a => ...', called the *motive*, with the property that 'm a' is definitionally equal to 'e'. Third, we observe that 'congrArg' implies that 'm a = m b', which can be used with lemmas such as 'Eq.mpr' to change the goal. However, if 'e' depends on specific properties of 'a', then the motive 'm' might not typecheck.
+
+Possible solutions: use rewrite's 'occs' configuration option to limit which occurrences are rewritten, or use 'simp' or 'conv' mode, which have strategies for certain kinds of dependencies (these tactics can handle proofs and 'Decidable' instances whose types depend on the rewritten term, and 'simp' can apply user-defined '@[congr]' theorems as well).
+
+n : ℕ
+W : WMat n
+xb ε : Vec n
+lam : ℝ
+h : IsUnit (1 - lam • W)
+⊢ ↑h.unit⁻¹ * (1 - lam • W) = 1
+error: GeoDa/Weights.lean:208:18: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (?M * ?N) *ᵥ ?v
+in the target expression
+  xb + ↑h.unit⁻¹ *ᵥ ε = ↑h.unit⁻¹ *ᵥ (1 - lam • W) *ᵥ xb + ↑h.unit⁻¹ *ᵥ ε
+
+n : ℕ
+W : WMat n
+xb ε : Vec n
+lam : ℝ
+h : IsUnit (1 - lam • W)
+hB : ↑h.unit⁻¹ * (1 - lam • W) = 1
+⊢ xb + ↑h.unit⁻¹ *ᵥ ε = ↑h.unit⁻¹ *ᵥ (1 - lam • W) *ᵥ xb + ↑h.unit⁻¹ *ᵥ ε
+error: GeoDa/Weights.lean:233:37: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  ?a + 0
+in the target expression
+  ε = 0 + ↑hlam.unit⁻¹ *ᵥ ε
+
+n : ℕ
+W : WMat n
+ρ lam : ℝ
+hρ : IsUnit (1 - ρ • W)
+hlam : IsUnit (1 - lam • W)
+h : ∀ (xb ε : Vec n), ↑hρ.unit⁻¹ *ᵥ (xb + ε) = xb + ↑hlam.unit⁻¹ *ᵥ ε
+hzero : ∀ (xb : Vec n), ↑hρ.unit⁻¹ *ᵥ xb = xb
+hρ1 : ↑hρ.unit⁻¹ = 1
+ε : Vec n
+hε : ε = 0 + ↑hlam.unit⁻¹ *ᵥ ε
+⊢ ↑hlam.unit⁻¹ *ᵥ ε = ε
+⚠ [1273/1276] Ran GeoDaTest.Smoke
+Some required targets logged failures:
+- GeoDa.Weights
+error: build failed

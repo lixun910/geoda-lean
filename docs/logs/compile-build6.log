@@ -1,0 +1,143 @@
+⚠ [842/1123] Replayed GeoDa.GNS
+✖ [1270/1276] Building GeoDa.Weights (845ms)
+info: GeoDa/Weights.lean:123:42: Try this:
+  [apply] abel_nf
+error: GeoDa/Weights.lean:123:32: unsolved goals
+case mp
+n : ℕ
+W : WMat n
+y xb ε : Vec n
+ρ : ℝ
+h : y = ρ • W *ᵥ y + xb + ε
+⊢ ρ • W *ᵥ y + (xb + ε) = xb + (ε + ρ • W *ᵥ (ρ • W *ᵥ y + (xb + ε)))
+info: GeoDa/Weights.lean:123:42: Try this:
+  [apply] abel_nf
+error: GeoDa/Weights.lean:123:32: unsolved goals
+case mpr
+n : ℕ
+W : WMat n
+y xb ε : Vec n
+ρ : ℝ
+h : y = xb + ε + ρ • W *ᵥ y
+⊢ xb + (ε + ρ • W *ᵥ y) = xb + (ε + ρ • W *ᵥ (xb + (ε + ρ • W *ᵥ y)))
+info: GeoDa/Weights.lean:134:42: Try this:
+  [apply] abel_nf
+error: GeoDa/Weights.lean:134:32: unsolved goals
+case mp
+n : ℕ
+W : WMat n
+y xb u✝ ε : Vec n
+lam : ℝ
+u : Vec n
+h : u = lam • W *ᵥ u + ε
+⊢ lam • W *ᵥ u + ε = ε + lam • W *ᵥ (lam • W *ᵥ u + ε)
+info: GeoDa/Weights.lean:134:42: Try this:
+  [apply] abel_nf
+error: GeoDa/Weights.lean:134:32: unsolved goals
+case mpr
+n : ℕ
+W : WMat n
+y xb u✝ ε : Vec n
+lam : ℝ
+u : Vec n
+h : u = ε + lam • W *ᵥ u
+⊢ ε + lam • W *ᵥ u = ε + lam • W *ᵥ (ε + lam • W *ᵥ u)
+error: GeoDa/Weights.lean:151:50: Type mismatch
+  h.unit⁻¹
+has type
+  (WMat n)ˣ
+but is expected to have type
+  Matrix ?m.44 (Fin n) ℝ
+error: GeoDa/Weights.lean:156:8: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (?M * ?N) *ᵥ ?v
+in the target expression
+  (1 - ρ • W) *ᵥ y = (1 - ρ • W) *ᵥ ↑h.unit⁻¹ *ᵥ (xb + ε)
+
+case mpr
+n : ℕ
+W : WMat n
+y xb ε : Vec n
+ρ : ℝ
+h : IsUnit (1 - ρ • W)
+hy : y = ↑h.unit⁻¹ *ᵥ (xb + ε)
+h1 : (1 - ρ • W) *ᵥ y = (1 - ρ • W) *ᵥ ↑h.unit⁻¹ *ᵥ (xb + ε)
+⊢ (1 - ρ • W) *ᵥ y = xb + ε
+error: GeoDa/Weights.lean:169:52: Type mismatch
+  h.unit⁻¹
+has type
+  (WMat n)ˣ
+but is expected to have type
+  Matrix ?m.66 (Fin n) ℝ
+error: GeoDa/Weights.lean:174:8: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (?M * ?N) *ᵥ ?v
+in the target expression
+  (1 - lam • W) *ᵥ u = (1 - lam • W) *ᵥ ↑h.unit⁻¹ *ᵥ ε
+
+case mpr
+n : ℕ
+W : WMat n
+y xb u ε : Vec n
+lam : ℝ
+h : IsUnit (1 - lam • W)
+hu : u = ↑h.unit⁻¹ *ᵥ ε
+hy : y = xb + ↑h.unit⁻¹ *ᵥ ε
+h1 : (1 - lam • W) *ᵥ u = (1 - lam • W) *ᵥ ↑h.unit⁻¹ *ᵥ ε
+⊢ (1 - lam • W) *ᵥ u = ε ∧ y = xb + u
+error: GeoDa/Weights.lean:185:18: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (?M * ?N) *ᵥ ?v
+in the target expression
+  xb + ↑h.unit⁻¹ *ᵥ ε = ↑h.unit⁻¹ *ᵥ (1 - lam • W) *ᵥ xb + ↑h.unit⁻¹ *ᵥ ε
+
+n : ℕ
+W : WMat n
+xb ε : Vec n
+lam : ℝ
+h : IsUnit (1 - lam • W)
+⊢ xb + ↑h.unit⁻¹ *ᵥ ε = ↑h.unit⁻¹ *ᵥ (1 - lam • W) *ᵥ xb + ↑h.unit⁻¹ *ᵥ ε
+error: GeoDa/Weights.lean:204:6: Type mismatch
+  mulVec_injective this
+has type
+  ↑hρ.unit⁻¹ = 1
+but is expected to have type
+  hρ.unit⁻¹ = 1
+error: GeoDa/Weights.lean:209:15: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  1 *ᵥ ?v
+in the target expression
+  ↑1 *ᵥ (0 + ε) = 0 + ↑hlam.unit⁻¹ *ᵥ ε
+
+n : ℕ
+W : WMat n
+ρ lam : ℝ
+hρ : IsUnit (1 - ρ • W)
+hlam : IsUnit (1 - lam • W)
+h : ∀ (xb ε : Vec n), ↑hρ.unit⁻¹ *ᵥ (xb + ε) = xb + ↑hlam.unit⁻¹ *ᵥ ε
+hzero : ∀ (xb : Vec n), ↑hρ.unit⁻¹ *ᵥ xb = xb
+hρ1 : hρ.unit⁻¹ = 1
+ε : Vec n
+hε : ↑1 *ᵥ (0 + ε) = 0 + ↑hlam.unit⁻¹ *ᵥ ε
+⊢ ↑hlam.unit⁻¹ *ᵥ ε = ε
+error: GeoDa/Weights.lean:214:4: Type mismatch
+  mulVec_injective this
+has type
+  ↑hlam.unit⁻¹ = 1
+but is expected to have type
+  hlam.unit⁻¹ = 1
+error: GeoDa/Weights.lean:216:16: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  1 *ᵥ ?v
+in the target expression
+  ↑1 *ᵥ (xb + ε) = xb + ↑1 *ᵥ ε
+
+case mpr
+n : ℕ
+W : WMat n
+ρ lam : ℝ
+hρ : IsUnit (1 - ρ • W)
+hlam : IsUnit (1 - lam • W)
+h1 : hρ.unit⁻¹ = 1
+h2 : hlam.unit⁻¹ = 1
+xb ε : Vec n
+⊢ ↑1 *ᵥ (xb + ε) = xb + ↑1 *ᵥ ε
+⚠ [1273/1276] Ran GeoDaTest.Smoke
+Some required targets logged failures:
+- GeoDa.Weights
+error: build failed

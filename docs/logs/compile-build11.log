@@ -1,0 +1,40 @@
+⚠ [842/1059] Replayed GeoDa.GNS
+⚠ [1054/1059] Replayed GeoDa.Weights
+info: GeoDaTest/Axioms.lean:16:0: 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:17:0: 'GeoDa.gns_iff_sem' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:18:0: 'GeoDa.gns_iff_sdm' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:19:0: 'GeoDa.gnsMat_iff_sarMat' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:20:0: 'GeoDa.gnsMat_iff_semMat' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:21:0: 'GeoDa.gnsMat_iff_sdmMat' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:22:0: 'GeoDa.sarMat_iff_mulVec' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:23:0: 'GeoDa.semMat_iff_mulVec' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:24:0: 'GeoDa.sarMat_iff_reducedForm' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:25:0: 'GeoDa.semMat_iff_reducedForm' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:26:0: 'GeoDa.sem_reducedForm_eq_sar_reducedForm_of_filtered' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: GeoDaTest/Axioms.lean:27:0: 'GeoDa.reducedForm_eq_iff_inverse_eq_one' depends on axioms: [propext, Classical.choice, Quot.sound]
+⚠ [1274/1276] Built GeoDaTest.Smoke (989ms)
+info: GeoDaTest/Smoke.lean:28:0: @gns_iff_sar : ∀ {n : ℕ} (W : Vec n →ₗ[ℝ] Vec n) (y xb u ε : Vec n) (ρ : ℝ),
+  GNS W y xb 0 u ε ρ 0 ↔ SAR W y xb ε ρ ∧ u = ε
+info: GeoDaTest/Smoke.lean:29:0: @gns_iff_sem : ∀ {n : ℕ} (W : Vec n →ₗ[ℝ] Vec n) (y xb u ε : Vec n) (lam : ℝ),
+  GNS W y xb 0 u ε 0 lam ↔ SEM W y xb u ε lam
+info: GeoDaTest/Smoke.lean:30:0: @gns_iff_sdm : ∀ {n : ℕ} (W : Vec n →ₗ[ℝ] Vec n) (y xb wxθ u ε : Vec n) (ρ : ℝ),
+  GNS W y xb wxθ u ε ρ 0 ↔ SDM W y xb wxθ ε ρ ∧ u = ε
+info: GeoDaTest/Smoke.lean:31:0: @gnsMat_iff_sarMat : ∀ {n : ℕ} (W : WMat n) (y xb u ε : Vec n) (ρ : ℝ),
+  GNSMat W y xb 0 u ε ρ 0 ↔ SARMat W y xb ε ρ ∧ u = ε
+info: GeoDaTest/Smoke.lean:32:0: @gnsMat_iff_semMat : ∀ {n : ℕ} (W : WMat n) (y xb u ε : Vec n) (lam : ℝ),
+  GNSMat W y xb 0 u ε 0 lam ↔ SEMMat W y xb u ε lam
+info: GeoDaTest/Smoke.lean:33:0: @gnsMat_iff_sdmMat : ∀ {n : ℕ} (W : WMat n) (y xb wxθ u ε : Vec n) (ρ : ℝ),
+  GNSMat W y xb wxθ u ε ρ 0 ↔ SDMMat W y xb wxθ ε ρ ∧ u = ε
+info: GeoDaTest/Smoke.lean:34:0: @sarMat_iff_mulVec : ∀ {n : ℕ} (W : WMat n) (y xb ε : Vec n) (ρ : ℝ), SARMat W y xb ε ρ ↔ (1 - ρ • W) *ᵥ y = xb + ε
+info: GeoDaTest/Smoke.lean:35:0: @semMat_iff_mulVec : ∀ {n : ℕ} (W : WMat n) (y xb u ε : Vec n) (lam : ℝ),
+  SEMMat W y xb u ε lam ↔ (1 - lam • W) *ᵥ u = ε ∧ y = xb + u
+info: GeoDaTest/Smoke.lean:36:0: @sarMat_iff_reducedForm : ∀ {n : ℕ} (W : WMat n) (y xb ε : Vec n) (ρ : ℝ) (h : IsUnit (1 - ρ • W)),
+  SARMat W y xb ε ρ ↔ y = ↑h.unit⁻¹ *ᵥ (xb + ε)
+info: GeoDaTest/Smoke.lean:37:0: @semMat_iff_reducedForm : ∀ {n : ℕ} (W : WMat n) (y xb u ε : Vec n) (lam : ℝ) (h : IsUnit (1 - lam • W)),
+  SEMMat W y xb u ε lam ↔ u = ↑h.unit⁻¹ *ᵥ ε ∧ y = xb + ↑h.unit⁻¹ *ᵥ ε
+info: GeoDaTest/Smoke.lean:38:0: @sem_reducedForm_eq_sar_reducedForm_of_filtered : ∀ {n : ℕ} (W : WMat n) (xb ε : Vec n) (lam : ℝ)
+  (h : IsUnit (1 - lam • W)), xb + ↑h.unit⁻¹ *ᵥ ε = ↑h.unit⁻¹ *ᵥ ((1 - lam • W) *ᵥ xb + ε)
+info: GeoDaTest/Smoke.lean:39:0: @reducedForm_eq_iff_inverse_eq_one : ∀ {n : ℕ} (W : WMat n) (ρ lam : ℝ) (hρ : IsUnit (1 - ρ • W))
+  (hlam : IsUnit (1 - lam • W)),
+  (∀ (xb ε : Vec n), ↑hρ.unit⁻¹ *ᵥ (xb + ε) = xb + ↑hlam.unit⁻¹ *ᵥ ε) ↔ ↑hρ.unit⁻¹ = 1 ∧ ↑hlam.unit⁻¹ = 1
+Build completed successfully (1276 jobs).

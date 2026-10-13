@@ -1,0 +1,95 @@
+⚠ [842/1059] Replayed GeoDa.GNS
+✖ [1270/1276] Building GeoDa.Weights (830ms)
+error: GeoDa/Weights.lean:65:61: unsolved goals
+n : ℕ
+W : WMat n
+y xb u ε : Vec n
+ρ : ℝ
+⊢ u = ε → (y = ρ • W *ᵥ y + xb + u ↔ y = ρ • W *ᵥ y + xb + ε)
+error: GeoDa/Weights.lean:75:67: unsolved goals
+n : ℕ
+W : WMat n
+y xb wxθ u ε : Vec n
+ρ : ℝ
+⊢ u = ε → (y = ρ • W *ᵥ y + xb + wxθ + u ↔ y = ρ • W *ᵥ y + xb + wxθ + ε)
+error: GeoDa/Weights.lean:83:6: Unknown identifier `sub_mulVec`
+error: GeoDa/Weights.lean:82:43: unsolved goals
+n : ℕ
+W : WMat n
+c : ℝ
+v : Vec n
+⊢ (1 - c • W) *ᵥ v = v - c • W *ᵥ v
+info: GeoDa/Weights.lean:90:42: Try this:
+  [apply] abel_nf
+error: GeoDa/Weights.lean:90:32: unsolved goals
+case mp
+n : ℕ
+W : WMat n
+y xb ε : Vec n
+ρ : ℝ
+h : y = ρ • W *ᵥ y + xb + ε
+⊢ ρ • W *ᵥ y + (xb + ε) = xb + (ε + ρ • W *ᵥ (ρ • W *ᵥ y + (xb + ε)))
+info: GeoDa/Weights.lean:90:42: Try this:
+  [apply] abel_nf
+error: GeoDa/Weights.lean:90:32: unsolved goals
+case mpr
+n : ℕ
+W : WMat n
+y xb ε : Vec n
+ρ : ℝ
+h : y = xb + ε + ρ • W *ᵥ y
+⊢ xb + (ε + ρ • W *ᵥ y) = xb + (ε + ρ • W *ᵥ (xb + (ε + ρ • W *ᵥ y)))
+info: GeoDa/Weights.lean:101:42: Try this:
+  [apply] abel_nf
+error: GeoDa/Weights.lean:101:32: unsolved goals
+case mp
+n : ℕ
+W : WMat n
+y xb u✝ ε : Vec n
+lam : ℝ
+u : Vec n
+h : u = lam • W *ᵥ u + ε
+⊢ lam • W *ᵥ u + ε = ε + lam • W *ᵥ (lam • W *ᵥ u + ε)
+info: GeoDa/Weights.lean:101:42: Try this:
+  [apply] abel_nf
+error: GeoDa/Weights.lean:101:32: unsolved goals
+case mpr
+n : ℕ
+W : WMat n
+y xb u✝ ε : Vec n
+lam : ℝ
+u : Vec n
+h : u = ε + lam • W *ᵥ u
+⊢ ε + lam • W *ᵥ u = ε + lam • W *ᵥ (ε + lam • W *ᵥ u)
+error: GeoDa/Weights.lean:118:50: Type mismatch
+  h.unit⁻¹
+has type
+  (WMat n)ˣ
+but is expected to have type
+  Matrix ?m.44 (Fin n) ℝ
+error: GeoDa/Weights.lean:123:10: Unknown identifier `mulVec_mulVec`
+error: GeoDa/Weights.lean:136:52: Type mismatch
+  h.unit⁻¹
+has type
+  (WMat n)ˣ
+but is expected to have type
+  Matrix ?m.66 (Fin n) ℝ
+error: GeoDa/Weights.lean:141:10: Unknown identifier `mulVec_mulVec`
+error: GeoDa/Weights.lean:152:6: Unknown identifier `mulVec_add`
+error: GeoDa/Weights.lean:151:72: unsolved goals
+n : ℕ
+W : WMat n
+xb ε : Vec n
+lam : ℝ
+h : IsUnit (1 - lam • W)
+⊢ xb + ↑h.unit⁻¹ *ᵥ ε = ↑h.unit⁻¹ *ᵥ ((1 - lam • W) *ᵥ xb + ε)
+error: GeoDa/Weights.lean:169:13: Unknown identifier `mulVec`
+error: GeoDa/Weights.lean:169:35: Unknown identifier `mulVec`
+error: GeoDa/Weights.lean:176:15: Unknown identifier `one_mulVec`
+error: GeoDa/Weights.lean:178:11: Unknown identifier `mulVec`
+error: GeoDa/Weights.lean:178:35: Unknown identifier `mulVec`
+error: GeoDa/Weights.lean:183:16: Unknown identifier `one_mulVec`
+⚠ [1273/1276] Ran GeoDaTest.Smoke
+Some required targets logged failures:
+- GeoDa.Weights
+error: build failed
