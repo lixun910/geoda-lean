@@ -7,9 +7,12 @@ assumption, and the spatial weights predicates (nonnegativity, row
 standardization, islands) those models are stated over.
 
 **Status:** baseline `eb53ae6` records successful verification of 115 audited
-results. The Paper 1 revision adds two results (117 audit entries total), whose
-full verification is **pending**; see [the validation record](paper/verification.md).
-Do not treat the baseline transcript as evidence for these additions.
+results. The Paper 1 revision adds two results (117 audit entries total), and full
+verification of them has been **observed in CI**: `Lean` run `38481135562` on
+revision `f0ee036` ends `ok: all 117 theorems depend only on [propext,
+Classical.choice, Quot.sound]` then `VERIFICATION SUCCEEDED`. See
+[the validation record](paper/verification.md). Do not treat the baseline
+transcript, or that run, as evidence for any later revision.
 
 ## Contents
 
@@ -557,6 +560,14 @@ on GitHub-hosted runners via
 `leanprover/lean-action`, which installs the pinned toolchain, fetches the Mathlib
 cache and builds. It triggers on `push` to `main`/`master`, on `pull_request` and on
 `workflow_dispatch` — note that pushing a feature branch on its own starts nothing.
+
+The Paper 1 revision has been verified this way: `Lean` run `38481135562` on commit
+`f0ee036` (`paper1-semantic-review`, triggered by draft pull request #22) completed
+green in 1 m 58 s on 2026-10-13, its audit reporting
+`ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]` and
+then `VERIFICATION SUCCEEDED`. The same job had failed on the revision's first
+commit `22ea450`, so the pass belongs to `f0ee036` and to nothing later. The
+`Validation` run `38481135556` from the same push is green as well.
 
 `lean-action`'s GitHub build cache is deliberately disabled (`use-github-cache:
 false`). Its save step archives the whole `.lake` tree — Mathlib's oleans included —

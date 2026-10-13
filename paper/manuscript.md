@@ -102,7 +102,7 @@ The hypotheses constitute a sufficient condition, not a necessary characterizati
 
 ### 4.3 Column bounds and the interpretation gap
 
-Nonnegative column-substochastic weights make (W^T) nonexpansive in the infinity norm. They also imply invertibility of **both** (I-\rho W^T) and (I-\rho W) for (|\rho|<1), because transposition preserves invertibility. The revision adds `isUnit_one_sub_smul_of_colSubstochastic` (verification pending) as a corollary of the existing transpose result.
+Nonnegative column-substochastic weights make (W^T) nonexpansive in the infinity norm. They also imply invertibility of **both** (I-\rho W^T) and (I-\rho W) for (|\rho|<1), because transposition preserves invertibility. The revision adds `isUnit_one_sub_smul_of_colSubstochastic` as a corollary of the existing transpose result.
 
 The earlier task narrative incorrectly described the untransposed conclusion as false. The checked theorem was narrower and correct; the error was in its prose interpretation. This case illustrates a limit of kernel checking: it verifies the statement actually submitted, not every explanation around it.
 
@@ -128,7 +128,7 @@ Applying it to (2) gives
 
 The product order is retained throughout; no commutativity assumption is needed to derive these identities. Generic theorems such as `gns_moments` accept matrices (A,B). Their names alone do not enforce that the arguments are spatial multipliers.
 
-The revision therefore adds `gnsDes_moments_of_rowSubstochastic` (verification pending). Its premises include the weights bounds, (|\rho|<1), (|\lambda|<1), white-noise moments, and the structural GNS equations at every sample point. Its proposed proof obtains the reduced-form equalities, rewrites the random functions, and applies the generic moment theorem. This provides one citable statement connecting the modeling assumptions to (4). The pointwise premise is explicit and stronger than an almost-everywhere structural equation; the current bridge does not silently claim the more general version.
+The revision therefore adds `gnsDes_moments_of_rowSubstochastic`. Its premises include the weights bounds, (|\rho|<1), (|\lambda|<1), white-noise moments, and the structural GNS equations at every sample point. Its proof obtains the reduced-form equalities, rewrites the random functions, and applies the generic moment theorem. This provides one citable statement connecting the modeling assumptions to (4). The pointwise premise is explicit and stronger than an almost-everywhere structural equation; the current bridge does not silently claim the more general version.
 
 ## 6. Specification syntax and assurance boundaries
 

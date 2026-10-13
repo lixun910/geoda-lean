@@ -5,8 +5,11 @@ Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
 **Status:** baseline `eb53ae6` records 115 verified audit entries. The Paper 1
-revision has 117 entries; full verification of its two additions is pending.
-See `paper/verification.md`; expected output below is not an observed new run.
+revision has 117 entries, and full verification of its two additions has now been
+observed: CI `Lean` run `38481135562` on revision `f0ee036` ends
+`ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]`
+then `VERIFICATION SUCCEEDED`. See `paper/verification.md`. That run covers
+`f0ee036` only.
 
 ## Layout
 
@@ -311,6 +314,15 @@ with `EXPECTED_COUNT` in `scripts/verify.sh` bumped to match.
   `workflow_dispatch` — pushing a feature branch starts *nothing*, so use
   `gh workflow run lean.yml --ref <branch>` to exercise CI on a branch. The one
   annotation left is a Node.js 20 deprecation notice on `actions/checkout@v4`.
+* **The `paper1-semantic-review` revision has been verified in CI.** Runs
+  `38481135562` (`Lean`) and `38481135556` (`Validation`), both on 2026-10-13 and
+  both on commit `f0ee036`, triggered by the draft PR #22 (`pull_request`). The
+  Lean run's `./scripts/verify.sh` step ends `ok: all 117 theorems depend only on
+  [propext, Classical.choice, Quot.sound]` then `VERIFICATION SUCCEEDED`. The
+  revision's *first* commit `22ea450` failed in the same job on
+  `GeoDa/Multiplier.lean:215:8: Unknown constant Matrix.isUnit_transpose.mp`, so
+  the pass belongs to `f0ee036` and to nothing later. Details in
+  `paper/verification.md`.
 * **The GitHub build cache is off on purpose** (`use-github-cache: false` in
   `.github/workflows/lean.yml`). `lean-action`'s cache save archives the whole
   `.lake` tree — Mathlib's ~5.5 GB of oleans included — by piping `tar` into

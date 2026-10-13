@@ -22,11 +22,34 @@ Python: 95 passed locally after the tolerance change; `python-tests.txt`.
 Evidence script: ten comparisons passed; maximum absolute error
 `8.881784197001252e-16`; `numerical-evidence.json`.
 
-Lean: pending full `./scripts/verify.sh` on the revision. Local Lean 4.35.0
-installed, but the executable reports `failed to locate application` in this
-execution environment. No local proof-verification success is claimed.
-The user authorized uploading this draft on 2026-10-13. Remote CI verification
-is pending; results will be recorded once observed.
+Lean: **observed to pass on the revision head**, in CI rather than locally. Remote
+CI ran the full suite on `f0ee036a9647e1a1076b8793058133503e64d125`:
+
+- `Lean` run `38481135562`, 2026-10-13, 1 m 58 s, green. Its
+  `./scripts/verify.sh` step ends
+
+  ```
+       ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]
+  VERIFICATION SUCCEEDED
+  ```
+
+- `Validation` run `38481135556`, 2026-10-13, 43 s, green: `95 passed in 2.86s`,
+  and the CI-scale Monte Carlo smoke run reports `50/50 ok, 0 failed` on every
+  fixture.
+
+The first revision commit `22ea450` did **not** verify. `Lean` run `38480834701`
+went red on `error: GeoDa/Multiplier.lean:215:8: Unknown constant
+'Matrix.isUnit_transpose.mp'`; `f0ee036` is the commit that replaced that proof.
+Both green runs are on `f0ee036`, and neither transfers to a later revision.
+
+No local verification is claimed. Lean 4.35.0 is installed on the local machine,
+but the executable reports `failed to locate application` in that execution
+environment, so a local `./scripts/verify.sh` never ran; `lean-attempt.txt` keeps
+the representative failure. CI is a second opinion on a different machine, not a
+substitute for the local suite — and at this revision it is the only evidence that
+a full `./scripts/verify.sh` has exited 0.
+
+The user authorized uploading this draft on 2026-10-13.
 
 ## Reproduce
 
@@ -47,7 +70,9 @@ package set for this run.
 
 ## Before submission
 
-1. Observe passing full proof verification for the final code revision.
+1. Observe passing full proof verification for the final code revision. Satisfied
+   for revision `f0ee036` only (CI runs `38481135562`, `38481135556`); it must be
+   re-observed for any commit that changes a proof or a statement.
 2. Confirm author list, affiliations, contribution disclosure, and target venue.
 3. Broaden the related-work comparison; obtain an independent domain review of
    `source-map.md` and the equation/probability distinction.
