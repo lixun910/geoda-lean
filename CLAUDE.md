@@ -4,14 +4,15 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified at commit `f9d7ed1`.** `./scripts/verify.sh` exits 0.
+**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 25 theorems.
 
 ## Layout
 
 ```
-GeoDa.lean             root module (imports both libraries)
+GeoDa.lean             root module (imports all three libraries)
 GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
 GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
+GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
 scripts/verify.sh      build + no-sorry + axiom audit
@@ -26,11 +27,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-12 main theorems in `GeoDaTest/Axioms.lean` depend only on
+25 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 12 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 25 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -110,7 +111,11 @@ that module and its transitive imports — see the gotchas below.
   Units.inv_mul h.unit` and friends, which normalises the *type* instead.
 * **`Matrix.mulVec_mulVec` reads `M *ᵥ N *ᵥ v = (M * N) *ᵥ v`** — the forward
   direction is the one that *combines* two applications. Using `←` there is a
-  familiar mistake.
+  familiar mistake. Its **explicit argument order is `(v, M, N)`, vector first**:
+  `mulVec_mulVec θ W X : W *ᵥ X *ᵥ θ = (W * X) *ᵥ θ`. Writing `mulVec_mulVec W X θ`
+  silently unifies `W` with the *vector* slot and fails with a type mismatch whose
+  displayed type looks like your goal with the arguments rotated — read the
+  metavariable positions, not the shape.
 * **`Mathlib/LinearAlgebra/Matrix/Basic.lean` does not exist in v4.35** (split
   into `Defs.lean`, `Module.lean`, …). `Mathlib.Data.Real.Basic` is deprecated in
   favour of `Mathlib.Basic.Real.Basic`.
@@ -142,27 +147,46 @@ Do not quietly present this work as Codex's, and do not delete that note.
 
 ## Next task
 
-`Xβ` and `WXθ` are still *supplied vectors* (`xb`, `wxθ`) rather than products of
-a design matrix with parameters. Close that last gap:
+The previous "next task" — forming `Xβ` and `WXθ` from a design matrix instead of
+taking them as supplied vectors — is **done**: see `GeoDa/Design.lean`. It
+introduces `X : Matrix (Fin n) (Fin k) ℝ` with `β θ : Fin k → ℝ`, defines
+`GNSDes`/`SARDes`/`SEMDes`/`SDMDes` with `xb := X *ᵥ β` and `wxθ := (W * X) *ᵥ θ`,
+and restates the nesting, linear-system, reduced-form and filtered-equivalence
+results there. `GeoDa/GNS.lean` and `GeoDa/Weights.lean` are untouched, so the
+audit count only grew (12 → 25).
 
-1. Introduce a design matrix `X : Matrix (Fin n) (Fin k) ℝ` and `β : Fin k → ℝ`,
-   with `xb := X *ᵥ β`, and a coefficient vector `θ` with `wxθ := (W * X) *ᵥ θ`.
-2. Restate the GNS/SAR/SEM/SDM definitions in those terms (a new file,
-   `GeoDa/Design.lean`, is probably cleaner than editing `Weights.lean`) and
-   reprove the nesting results there.
-3. Keep the existing theorems untouched so the audit count only grows.
-4. Acceptance: `./scripts/verify.sh` still exits 0, no `sorry`, no new axioms,
-   new theorems pinned in `Smoke.lean` and audited in `Axioms.lean`.
+What is left, roughly in order of value:
 
-After that, the formal objects coincide with what PySAL `spreg` actually
-computes, which is the precondition for numerical cross-checks.
+1. **Reduced forms under `det ≠ 0`.** The hypothesis today is `IsUnit (1 - ρ • W)`;
+   connect it to `Matrix.isUnit_iff_isUnit_det` so the statements read in terms of
+   the determinant, which is what an implementation actually checks.
+2. **Row-standardized weights.** Prove `W ⬝ 1 = 1`-type properties and
+   invertibility of `1 - ρW` for `|ρ| < 1` (Neumann series / Gershgorin radius).
+   This is the first place a regularity assumption on `W` would enter; everything
+   so far is assumption-free in `W`.
+3. **A GNS-level reduced form.** Eliminate `u` and then `y` in GNS itself, under
+   invertibility of both `1 - ρW` and `1 - λW`.
+4. **Numerical cross-checks against PySAL `spreg`.** The formal objects now
+   coincide with what `spreg` computes, but nothing has been compared against a
+   real implementation yet.
+
+Same acceptance criteria as always: `./scripts/verify.sh` exits 0, no `sorry`, no
+new axiom, new main theorems pinned in `Smoke.lean` and audited in `Axioms.lean`,
+with `EXPECTED_COUNT` in `scripts/verify.sh` bumped to match.
 
 ## Open items
 
-* **CI has never been observed to pass.** `.github/workflows/lean.yml` triggers
-  on push to `main`, but the repository is private and no run has been inspected
-  yet. Check the Actions tab (or `gh run list --repo lixun910/geoda-lean`) before
-  describing CI as working. The build and verification above were done on a
-  local machine, not by GitHub Actions.
-* The README, this file and the sources are in step with commit `f9d7ed1`; keep
-  them that way when the theorems change.
+* **CI has now been observed to pass — once.** `Lean` run `38438326129` on `main`
+  (commit `f9d7ed1`) completed green in 3 m 30 s on 2026-10-13. That is the only
+  run in the repository's history as of this writing, and it was triggered by
+  `push` to `main`. Two things to know before relying on it:
+  * the workflow triggers only on `push` to `main`/`master`, on `pull_request`, and
+    on `workflow_dispatch` — a plain push of a feature branch starts nothing, so
+    use `gh workflow run lean.yml --ref <branch>` to exercise CI on a branch;
+  * the green run carries a non-fatal annotation on the action's cache-save step
+    (`Failed to save: "/usr/bin/tar" failed with error ... exit code 2`). It did not
+    fail the job.
+* Local `./scripts/verify.sh` is the load-bearing evidence; CI is a second opinion
+  on a different machine.
+* The README, this file and the sources are kept in step; when the theorems change,
+  change all three together.
