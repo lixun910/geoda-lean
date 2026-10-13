@@ -1,0 +1,27 @@
+name: Lean
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Build and verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Lean, fetch Mathlib cache, build
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: true
+          test: false
+          lint: false
+
+      - name: Verification suite (build, no sorry, axiom audit)
+        run: ./scripts/verify.sh
+        shell: bash

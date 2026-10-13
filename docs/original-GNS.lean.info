@@ -1,0 +1,4 @@
+docs/original-GNS.lean is the pre-existing draft of GeoDa/GNS.lean, kept verbatim
+for provenance. It was never compiled: it binds the disturbance coefficient as `λ`,
+which is Lean's lambda token, so the file cannot be parsed. See README.md,
+section "Provenance".
