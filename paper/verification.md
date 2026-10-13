@@ -22,8 +22,9 @@ Python: 95 passed locally after the tolerance change; `python-tests.txt`.
 Evidence script: ten comparisons passed; maximum absolute error
 `8.881784197001252e-16`; `numerical-evidence.json`.
 
-Lean: **observed to pass on the revision head**, in CI rather than locally. Remote
-CI ran the full suite on `f0ee036a9647e1a1076b8793058133503e64d125`:
+Lean: **observed to pass on the revision**, in CI rather than locally. The
+verification anchor is `f0ee036a9647e1a1076b8793058133503e64d125` — the last commit
+of this branch that changes a Lean source file. Remote CI ran the full suite on it:
 
 - `Lean` run `38481135562`, 2026-10-13, 1 m 58 s, green. Its
   `./scripts/verify.sh` step ends
@@ -40,7 +41,14 @@ CI ran the full suite on `f0ee036a9647e1a1076b8793058133503e64d125`:
 The first revision commit `22ea450` did **not** verify. `Lean` run `38480834701`
 went red on `error: GeoDa/Multiplier.lean:215:8: Unknown constant
 'Matrix.isUnit_transpose.mp'`; `f0ee036` is the commit that replaced that proof.
-Both green runs are on `f0ee036`, and neither transfers to a later revision.
+
+The commits after `f0ee036` edit documentation only, and CI verifies them too: on
+the branch head `37ce61d`, `Lean` run `38481610834` is green in 2 m 24 s with the
+same tail and `Validation` run `38481610899` with it. So the verification is not
+tied to a particular documentation commit, and this record is deliberately not
+enumerated per prose edit — that would make the anchor chase a moving branch,
+which is the thing item 4 of *Before submission* warns against. The anchor moves
+only when a proof or a statement moves, and then the runs above stop applying.
 
 No local verification is claimed. Lean 4.35.0 is installed on the local machine,
 but the executable reports `failed to locate application` in that execution
@@ -71,8 +79,9 @@ package set for this run.
 ## Before submission
 
 1. Observe passing full proof verification for the final code revision. Satisfied
-   for revision `f0ee036` only (CI runs `38481135562`, `38481135556`); it must be
-   re-observed for any commit that changes a proof or a statement.
+   for `f0ee036` (CI runs `38481135562`, `38481135556`) and for the documentation-only
+   commits after it. It must be observed again, on the new revision, for any commit
+   that changes a proof or a statement.
 2. Confirm author list, affiliations, contribution disclosure, and target venue.
 3. Broaden the related-work comparison; obtain an independent domain review of
    `source-map.md` and the equation/probability distinction.

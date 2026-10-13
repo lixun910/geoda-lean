@@ -8,8 +8,10 @@ forms under an invertibility assumption.
 revision has 117 entries, and full verification of its two additions has now been
 observed: CI `Lean` run `38481135562` on revision `f0ee036` ends
 `ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]`
-then `VERIFICATION SUCCEEDED`. See `paper/verification.md`. That run covers
-`f0ee036` only.
+then `VERIFICATION SUCCEEDED`. See `paper/verification.md`. `f0ee036` is the
+verification anchor — the last commit there that changes a Lean source — and the
+pass survives later documentation-only commits; a commit that changes a proof or a
+statement starts a new anchor and needs its own run.
 
 ## Layout
 
@@ -321,7 +323,9 @@ with `EXPECTED_COUNT` in `scripts/verify.sh` bumped to match.
   [propext, Classical.choice, Quot.sound]` then `VERIFICATION SUCCEEDED`. The
   revision's *first* commit `22ea450` failed in the same job on
   `GeoDa/Multiplier.lean:215:8: Unknown constant Matrix.isUnit_transpose.mp`, so
-  the pass belongs to `f0ee036` and to nothing later. Details in
+  the pass belongs to `f0ee036` and to no earlier commit. Later documentation-only
+  commits are green too (head `37ce61d`, `Lean` run `38481610834`); `f0ee036` is
+  simply the anchor, the last commit there that changes a Lean source. Details in
   `paper/verification.md`.
 * **The GitHub build cache is off on purpose** (`use-github-cache: false` in
   `.github/workflows/lean.yml`). `lean-action`'s cache save archives the whole

@@ -12,7 +12,8 @@ verification of them has been **observed in CI**: `Lean` run `38481135562` on
 revision `f0ee036` ends `ok: all 117 theorems depend only on [propext,
 Classical.choice, Quot.sound]` then `VERIFICATION SUCCEEDED`. See
 [the validation record](paper/verification.md). Do not treat the baseline
-transcript, or that run, as evidence for any later revision.
+transcript as evidence for these additions, and do not carry the run past a commit
+that changes a proof or a statement.
 
 ## Contents
 
@@ -566,8 +567,11 @@ The Paper 1 revision has been verified this way: `Lean` run `38481135562` on com
 green in 1 m 58 s on 2026-10-13, its audit reporting
 `ok: all 117 theorems depend only on [propext, Classical.choice, Quot.sound]` and
 then `VERIFICATION SUCCEEDED`. The same job had failed on the revision's first
-commit `22ea450`, so the pass belongs to `f0ee036` and to nothing later. The
-`Validation` run `38481135556` from the same push is green as well.
+commit `22ea450`, so the pass belongs to `f0ee036` and to no earlier commit. The
+`Validation` run `38481135556` from the same push is green as well, and the two
+runs repeat green on later documentation-only commits (head `37ce61d`, run
+`38481610834`). What breaks the chain is a commit that changes a proof or a
+statement, not a prose edit.
 
 `lean-action`'s GitHub build cache is deliberately disabled (`use-github-cache:
 false`). Its save step archives the whole `.lake` tree — Mathlib's oleans included —
