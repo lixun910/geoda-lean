@@ -4,12 +4,12 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 82 theorems.
+**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 87 theorems.
 
 ## Layout
 
 ```
-GeoDa.lean             root module (imports all six libraries)
+GeoDa.lean             root module (imports all seven libraries)
 GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
 GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
 GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
@@ -18,6 +18,8 @@ GeoDa/SpatialWeights.lean  weights predicates (Nonneg, RowStochastic, Island, �
                        and row normalization; no global assumptions added
 GeoDa/Multiplier.lean  |ρ| < 1 ⇒ IsUnit (1 - ρ • W) from Nonneg + RowSubstochastic
 GeoDa/RandomVector.lean  probability layer: rvExp, rvCov, IsWhiteNoise, model moments
+GeoDa/DSL.lean         `spatial_model`: generate a model's `def` from its equation
+GeoDaTest/DSL.lean     DSL tests: rfl-equivalence to the hand-written specs, rejections
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
 scripts/verify.sh      build + no-sorry + axiom audit
@@ -34,11 +36,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-82 main theorems in `GeoDaTest/Axioms.lean` depend only on
+87 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 82 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 87 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -163,6 +165,16 @@ keep it that way.
   defines them in a `section` *outside* `namespace Matrix` (that file does
   `open Matrix` rather than nesting). The `⬝ᵥ` notation is root-level too. There
   is also no `Matrix.rowSum`, so `GeoDa.rowSum` is free.
+* **`lake env lean <file>` does not rebuild the files `<file>` imports.** It uses the
+  `.olean`s already on disk, so after editing `GeoDa/*.lean` you must `lake build GeoDa`
+  before `lake env lean /tmp/probe.lean`, or you will debug the *previous* version of
+  your code — which looks exactly like your edit having had no effect, or worse, like a
+  bug you have already fixed.
+* **A docstring cannot precede a custom command.** `/-- … -/ spatial_model Foo … ` fails
+  with "unexpected token 'spatial_model'; expected 'lemma'": Lean's parser attaches a
+  docstring to a *declaration*, and a `CommandElab` is not one. Use a `--` comment, or
+  have the command put the docstring on the declaration it generates (which
+  `spatial_model` does).
 * **`IsProbabilityMeasure` is not a root-level name; `open MeasureTheory` first.**
   `Measure` alone resolves at root, so `{μ : Measure Ω}` elaborates, but
   `[IsProbabilityMeasure μ]` then fails with the baffling
@@ -238,23 +250,28 @@ audit count only grew (12 → 25).
 
 What is left, roughly in order of value:
 
-1. **A multivariate normal innovation, and a likelihood built on it.** The
-   probability layer in `GeoDa/RandomVector.lean` stops at two moments
-   (`IsWhiteNoise`); fixing a distribution is strictly stronger and should stay a
-   separate claim. This is the stretch goal of the P1.1 issue, not started.
-2. **Numerical cross-checks against PySAL `spreg`.** The formal objects now
-   coincide with what `spreg` computes — `Xβ` and `WXθ` are matrix products, the
-   reduced form covers GNS itself, and the invertibility hypothesis is discharged
-   from `|ρ| < 1` plus the weights — but nothing has been compared against a real
-   implementation yet.
-3. **SAR and SEM reduced forms under `det ≠ 0`.** The GNS ones are already
+1. **A multivariate normal innovation, and a likelihood built on it.** The probability
+   layer in `GeoDa/RandomVector.lean` stops at two moments (`IsWhiteNoise`); fixing a
+   distribution is strictly stronger and should stay a separate claim. This is the
+   stretch goal of the P1.1 issue, not started.
+2. **Templated statements.** `GeoDa/DSL.lean` generates a model's *definition* from its
+   equation. Generating the *statements* that usually follow — the nesting, the reduced
+   form — is the obvious next step, and the obstacle is that "the reduced form of this
+   model" is not a syntactic operation on an equation: it needs the model to be
+   *recognised*, which reintroduces the interpretation the design deliberately avoids.
+   See `docs/DSL-RFC.md` §11.
+3. **A GNS estimator.** `validation/benchmark/` cannot fit GNS with `θ ≠ 0` and
+   `λ ≠ 0` because `spreg` has no such estimator; that entry in `SUPPORT` is empty and
+   the harness raises rather than substituting something else.
+4. **SAR and SEM reduced forms under `det ≠ 0`.** The GNS ones are already
    (`gnsDes_iff_reducedForm_of_det_ne_zero`, via `isUnit_iff_det_ne_zero`), and
-   `GeoDa.Multiplier` derives the hypothesis from the weights for SAR and SEM;
-   the theorems in `GeoDa.Weights` and `GeoDa.Design` still take `IsUnit` directly.
+   `GeoDa.Multiplier` derives the hypothesis from the weights for SAR and SEM; the
+   theorems in `GeoDa.Weights` and `GeoDa.Design` still take `IsUnit` directly.
 
 Already done, for the record: P0.1 `GeoDa/SpatialWeights.lean`, P0.2
-`GeoDa/Multiplier.lean`, P0.3 `GeoDa/ReducedForm.lean`, P1.1 (moment half)
-`GeoDa/RandomVector.lean`.
+`GeoDa/Multiplier.lean`, P0.3 `GeoDa/ReducedForm.lean`, P1.1 (the moment half)
+`GeoDa/RandomVector.lean`, P2.1 `validation/`, P2.2 `validation/benchmark/`,
+P3.1 `GeoDa/DSL.lean` + `docs/DSL-RFC.md`.
 
 Same acceptance criteria as always: `./scripts/verify.sh` exits 0, no `sorry`, no
 new axiom, new main theorems pinned in `Smoke.lean` and audited in `Axioms.lean`,
