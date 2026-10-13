@@ -6,5 +6,6 @@ import GeoDa.Multiplier
 import GeoDa.Nesting
 import GeoDa.RandomVector
 import GeoDa.ReducedForm
+import GeoDa.Sdem
 import GeoDa.SpatialWeights
 import GeoDa.Weights

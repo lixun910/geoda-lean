@@ -69,6 +69,16 @@ open GeoDa
 #check @GeoDa.sdmDes_iff_mulVec
 #check @GeoDa.sdmDes_iff_reducedForm
 
+#check @GeoDa.SDEMDes
+#check @GeoDa.gnsDes_iff_sdemDes
+#check @GeoDa.sdemDes_iff_slx_and_error
+#check @GeoDa.sdemDes_iff_slxDes_of_lam_zero
+#check @GeoDa.sdemDes_iff_semDes_of_theta_zero
+#check @GeoDa.sdemDes_iff_mulVec
+#check @GeoDa.sdemDes_iff_reducedForm
+#check @GeoDa.sdemDes_iff_reducedForm_of_rowSubstochastic
+#check @GeoDa.sdem_moments
+
 #check @GeoDa.diagMul
 #check @GeoDa.HeteroSARDes
 #check @GeoDa.diagMul_mulVec

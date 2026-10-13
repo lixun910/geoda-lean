@@ -28,6 +28,7 @@ __all__ = [
     "sar_reduced",
     "sem_reduced",
     "sdm_reduced",
+    "sdem_reduced",
     "structural_residuals",
     "row_standardize",
     "to_pysal_W",
@@ -92,6 +93,19 @@ def sdm_reduced(W, rho, X, beta, theta, eps):
     """
     u, y = gns_reduced(W, rho, 0.0, X, beta, theta, eps)
     return y
+
+
+def sdem_reduced(W, lam, X, beta, theta, eps):
+    """SDEM reduced form: ``u = (I - λW)⁻¹ε`` and ``y = Xβ + WXθ + u``.
+
+    Lean: ``GeoDa.sdemDes_iff_reducedForm``. The model of LeSage and Pace (2009); it is SLX
+    with a spatial error, so it is ``sem_reduced`` plus the lagged-regressor term.
+    """
+    eps = np.asarray(eps, dtype=float).ravel()
+    n = eps.shape[0]
+    xb, wxg = _xb_wxg(W, X, beta, theta, n)
+    u = np.linalg.solve(spatial_multiplier(W, lam), eps)
+    return u, xb + wxg + u
 
 
 def structural_residuals(W, rho, lam, X, beta, theta, eps, u, y):
