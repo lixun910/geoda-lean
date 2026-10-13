@@ -1,0 +1,14 @@
+# Pinned dependencies for the numerical validation harness.
+#
+# These versions were resolved and the suite was run green on CPython 3.14.2
+# (macOS, arm64). The CI job pins its own interpreter; see
+# .github/workflows/validation.yml.
+#
+# `libpysal` and `spreg` pull in pandas/geopandas/scikit-learn transitively; only
+# the direct dependencies are pinned here.
+
+numpy==2.5.4
+scipy==1.18.1
+libpysal==4.15.0
+spreg==1.9.1
+pytest==9.1.1

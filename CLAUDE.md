@@ -21,6 +21,7 @@ GeoDa/RandomVector.lean  probability layer: rvExp, rvCov, IsWhiteNoise, model mo
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
 scripts/verify.sh      build + no-sorry + axiom audit
+validation/            numerical cross-checks vs NumPy/SciPy/PySAL; NOT verification
 docs/original-GNS.lean the pre-existing draft, kept verbatim (see "Provenance")
 README.md              the user-facing write-up; keep it in step with the code
 ```
@@ -66,6 +67,17 @@ lake exe cache get   # downloads the prebuilt Mathlib oleans (~5-7 GB)
 Budget ~10 GB of free disk for `.lake` (the toolchain is another ~3 GB under
 `~/.elan`). If space is short, `lake exe cache get <module name>` fetches only
 that module and its transitive imports — see the gotchas below.
+
+The second CI workflow, `Validation` (`.github/workflows/validation.yml`), installs
+`validation/requirements.txt` and runs `python -m pytest validation`. It is a
+cross-check of the formulas against NumPy/SciPy/PySAL, **not** a verification: it says
+nothing about theorem statements, and a red `Validation` job does not invalidate a
+proof. Do not describe it as verifying anything. To run it locally:
+
+```
+python -m venv .venv && .venv/bin/pip install -r validation/requirements.txt
+.venv/bin/python -m pytest validation -q
+```
 
 ## Hard rules
 
@@ -260,5 +272,9 @@ with `EXPECTED_COUNT` in `scripts/verify.sh` bumped to match.
   left to compile.
 * Local `./scripts/verify.sh` is the load-bearing evidence; CI is a second opinion
   on a different machine.
+* **The `Validation` workflow is not verification.** It cross-checks the formulas
+  numerically; `./scripts/verify.sh` is what proves them. Keep the distinction in
+  anything you write. `validation/README.md` states it, and so does the top-level
+  `README.md`.
 * The README, this file and the sources are kept in step; when the theorems change,
   change all three together.
