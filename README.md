@@ -7,7 +7,7 @@ assumption, and the spatial weights predicates (nonnegativity, row
 standardization, islands) those models are stated over.
 
 **Status: compiler-verified.** `./scripts/verify.sh` builds every target, checks
-that no proof uses `sorry` or `admit`, and audits the axioms of all 106 main
+that no proof uses `sorry` or `admit`, and audits the axioms of all 115 main
 theorems (see [Verification](#verification) for the exact toolchain, command and
 observed output).
 
@@ -24,10 +24,12 @@ GeoDa/RandomVector.lean   probability layer: expectation, covariance, model mome
 GeoDa/DSL.lean            a `spatial_model` command: a model from its equation alone
 GeoDa/Nesting.lean        SLX, and GNS with both spatial coefficients switched off
 GeoDa/HeteroRho.lean      the heterogeneous-ρ model: reduced form and identifiability
+GeoDa/Sdem.lean           the spatial Durbin error model: nestings and reduced form
 GeoDa/SpatialWeights.lean weights predicates, row normalization, islands
 GeoDaTest/DSL.lean        the DSL's tests: rfl-equivalence and pinned rejections
 GeoDaTest/AgentTasks.lean the agent-loop benchmark, including the refuted conjectures
 GeoDaTest/HeteroRho.lean  the heterogeneous-ρ tests: both directions of identifiability
+GeoDaTest/Sdem.lean       the SDEM tests: nestings, reduced form, and the DSL equivalence
 GeoDaTest/Smoke.lean      compile-time tests (signature pins, explicit examples)
 GeoDaTest/Axioms.lean     axiom audit, driven by scripts/verify.sh
 scripts/verify.sh         the verification suite
@@ -36,6 +38,7 @@ validation/benchmark/     Monte Carlo bias/RMSE/coverage study of spreg estimato
 docs/DSL-RFC.md           the design of the `spatial_model` DSL
 docs/agent-tasks.md       the agent-loop benchmark: three tasks and what they returned
 docs/research-note-heterogeneous-rho.md  the research pilot: prior art, findings, open obligations
+docs/research-note-sdem.md   the P4.2 benchmark: prior art, fidelity check, workflow metrics
 AGENTS.md                 working notes for agents; points at CLAUDE.md
 .claude/skills/geoda-lean/ a reusable Skill: the conventions and the protocol
 .github/workflows/        CI: the verification suite, and the numerical cross-checks
@@ -453,6 +456,37 @@ feasible**, because it needs `ε`. Whether `ρ` can be estimated, at what rate, 
 design, is left as an open obligation, along with five others, in §6 of the research note.
 Nothing here makes an empirical claim, and no estimator is validated.
 
+### The P4.2 benchmark: SDEM (`GeoDa.Sdem`)
+
+`GeoDa/Sdem.lean` formalizes the **spatial Durbin error model** — `y = Xβ + WXθ + u`,
+`u = λWu + ε` — as a *reproduction* of published results rather than a new development. It is
+the benchmark model of the P4.2 pilot, chosen because there is a reference to be wrong against:
+it is in LeSage and Pace's *Introduction to Spatial Econometrics* (2009), LeSage (2014) singles
+it out as one of two specifications applied work should consider, and PySAL implements its DGP.
+
+The formalization is mostly *assembly*, which is what a benchmark on an established model
+should be. SDEM is GNS with `ρ = 0` (`gnsDes_iff_sdemDes`), so it reuses the existing machinery;
+`sdemDes_iff_slx_and_error` shows it is SLX with a spatial error and is `Iff.rfl`, an identity
+rather than an argument; `sdemDes_iff_slxDes_of_lam_zero` and `sdemDes_iff_semDes_of_theta_zero`
+are the two nestings LeSage (2014) states — SDEM subsumes SLX and SEM — and are the closest
+thing here to a semantic-fidelity check, since the published claim is exactly a relation
+between named models. The reduced form `y = Xβ + WXθ + (1 - λW)⁻¹ε` comes with the invertibility
+hypothesis *derived* from the weights, and the moments from `sem_moments` unchanged.
+
+The numerical cross-check is against **PySAL's** DGP, not ours: `spreg.dgp.dgp_slxerror`
+computes exactly the reduced form, so agreement is not circular. Two failure cases are
+recorded: `spreg`'s default `imethod="power_exp"` *refuses* rather than degrades near `|λ| = 1`,
+which is the numerical shadow of the Lean hypothesis; and islands, which do not break
+existence but would break identification.
+
+`docs/research-note-sdem.md` carries the prior art, the workflow metrics, and — with more
+prominence than the results — what the exercise does **not** show. Chiefly: the papers were
+**searched for, not read**, and the run was **not blind** — the required literature search
+returned the reduced form and both nestings, and the repository already contained the same
+proof shape for SEM and SAR. It is a demonstration that a published model can be reconstructed
+and cross-checked through the existing library; it is not evidence that the workflow scales to
+unfamiliar mathematics.
+
 ## Scope and non-claims
 
 This is a formalization of *model equations*, plus the first two moments of the
@@ -497,13 +531,13 @@ and `lake-manifest.json`.
 ```
 $ ./scripts/verify.sh
 ==> 1/3  lake build
-Build completed successfully (2629 jobs).
+Build completed successfully (2631 jobs).
 ==> 2/3  no sorry / admit
      ok: no sorry/admit in any proof
 ==> 3/3  axiom audit
 'GeoDa.gns_iff_sar' depends on axioms: [propext, Classical.choice, Quot.sound]
 … (56 theorems, all on the same list)
-     ok: all 106 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 115 theorems depend only on [propext, Classical.choice, Quot.sound]
 
 VERIFICATION SUCCEEDED
 ```

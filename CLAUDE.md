@@ -4,12 +4,12 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 106 theorems.
+**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 115 theorems.
 
 ## Layout
 
 ```
-GeoDa.lean             root module (imports all nine libraries)
+GeoDa.lean             root module (imports all ten libraries)
 GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
 GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
 GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
@@ -21,12 +21,15 @@ GeoDa/RandomVector.lean  probability layer: rvExp, rvCov, IsWhiteNoise, model mo
 GeoDa/DSL.lean         `spatial_model`: generate a model's `def` from its equation
 GeoDa/Nesting.lean     SLX, and GNS with both spatial coefficients off
 GeoDa/HeteroRho.lean   the heterogeneous-ρ model: reduced form and identifiability
+GeoDa/Sdem.lean        the spatial Durbin error model (the P4.2 benchmark model)
 GeoDaTest/DSL.lean     DSL tests: rfl-equivalence to the hand-written specs, rejections
 GeoDaTest/AgentTasks.lean  the agent-loop benchmark's refuted conjectures
 GeoDaTest/HeteroRho.lean    heterogeneous-ρ tests: both directions of identifiability
+GeoDaTest/Sdem.lean         SDEM tests: nestings, reduced form, DSL equivalence
 AGENTS.md              the agent protocol; points at this file rather than copying it
 docs/agent-tasks.md    the agent-loop benchmark record
-docs/research-note-heterogeneous-rho.md  the research pilot
+docs/research-note-heterogeneous-rho.md  the heterogeneous-ρ pilot
+docs/research-note-sdem.md  the P4.2 benchmark: prior art, fidelity check, workflow metrics
 .claude/skills/geoda-lean/  reusable Skill: conventions + the task protocol
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
@@ -44,11 +47,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-106 main theorems in `GeoDaTest/Axioms.lean` depend only on
+115 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 106 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 115 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -290,8 +293,8 @@ Already done, for the record: P0.1 `GeoDa/SpatialWeights.lean`, P0.2
 `GeoDa/Multiplier.lean`, P0.3 `GeoDa/ReducedForm.lean`, P1.1 (the moment half)
 `GeoDa/RandomVector.lean`, P2.1 `validation/`, P2.2 `validation/benchmark/`,
 P3.1 `GeoDa/DSL.lean` + `docs/DSL-RFC.md`, P4.1 `AGENTS.md` +
-`.claude/skills/geoda-lean/` + `docs/agent-tasks.md`, P4.2 `GeoDa/HeteroRho.lean` +
-`docs/research-note-heterogeneous-rho.md`.
+`.claude/skills/geoda-lean/` + `docs/agent-tasks.md`, P4.2 `GeoDa/Sdem.lean` +
+`docs/research-note-sdem.md` (with `GeoDa/HeteroRho.lean` as the earlier, superseded pilot).
 
 Same acceptance criteria as always: `./scripts/verify.sh` exits 0, no `sorry`, no
 new axiom, new main theorems pinned in `Smoke.lean` and audited in `Axioms.lean`,

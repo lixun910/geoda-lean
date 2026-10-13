@@ -6,6 +6,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 import GeoDa
 import GeoDaTest.AgentTasks
 import GeoDaTest.HeteroRho
+import GeoDaTest.Sdem
 import GeoDaTest.DSL
 
 /-!
@@ -140,3 +141,14 @@ user-introduced axiom.
 #print axioms GeoDa.heteroSARDes_island_invariant
 #print axioms GeoDa.heteroSAR_reducedForm_island_invariant
 #print axioms GeoDaTest.wisland_two_rho_same_multiplier
+
+-- GeoDa.Sdem: the P4.2 benchmark model, its nestings and its reduced form
+#print axioms GeoDa.gnsDes_iff_sdemDes
+#print axioms GeoDa.sdemDes_iff_slx_and_error
+#print axioms GeoDa.sdemDes_iff_slxDes_of_lam_zero
+#print axioms GeoDa.sdemDes_iff_semDes_of_theta_zero
+#print axioms GeoDa.sdemDes_iff_mulVec
+#print axioms GeoDa.sdemDes_iff_reducedForm
+#print axioms GeoDa.sdemDes_iff_reducedForm_of_rowSubstochastic
+#print axioms GeoDa.sdem_moments
+#print axioms GeoDaTest.sdemViaDsl_eq_SDEMDes
