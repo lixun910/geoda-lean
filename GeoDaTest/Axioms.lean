@@ -75,3 +75,12 @@ user-introduced axiom.
 #print axioms GeoDa.rowSubstochastic_normalize
 #print axioms GeoDa.rowStochastic_normalize_iff
 #print axioms GeoDa.rowStochastic_normalize_iff_pos
+
+-- GeoDa.Multiplier: invertibility of 1 - ρW under weights assumptions
+#print axioms GeoDa.abs_mulVec_apply_le_norm
+#print axioms GeoDa.norm_mulVec_le
+#print axioms GeoDa.mulVec_injective_one_sub_smul
+#print axioms GeoDa.isUnit_one_sub_smul_of_rowSubstochastic
+#print axioms GeoDa.isUnit_one_sub_smul_of_rowStochastic
+#print axioms GeoDa.sarMat_iff_reducedForm_of_rowSubstochastic
+#print axioms GeoDa.semMat_iff_reducedForm_of_rowSubstochastic

@@ -4,18 +4,19 @@ Lean 4 + Mathlib formalization of the equation-level nesting of the General
 Nesting Spatial (GNS) model into SAR, SEM and SDM, with the SAR/SEM reduced
 forms under an invertibility assumption.
 
-**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 56 theorems.
+**Status: compiler-verified.** `./scripts/verify.sh` exits 0 and audits 63 theorems.
 
 ## Layout
 
 ```
-GeoDa.lean             root module (imports all four libraries)
+GeoDa.lean             root module (imports all five libraries)
 GeoDa/GNS.lean         abstract: W is an ℝ-linear endomorphism of Fin n → ℝ
 GeoDa/Weights.lean     concrete: W is Matrix (Fin n) (Fin n) ℝ, via Matrix.mulVec
 GeoDa/Design.lean      design matrix X; Xβ = X *ᵥ β, WXθ = (W * X) *ᵥ θ
 GeoDa/ReducedForm.lean full GNS reduced form: u = B⁻¹ε, y = A⁻¹(Xβ + WXθ + B⁻¹ε)
 GeoDa/SpatialWeights.lean  weights predicates (Nonneg, RowStochastic, Island, …)
                        and row normalization; no global assumptions added
+GeoDa/Multiplier.lean  |ρ| < 1 ⇒ IsUnit (1 - ρ • W) from Nonneg + RowSubstochastic
 GeoDaTest/Smoke.lean   compile-time tests: signature pins + explicit n = 1, 2 examples
 GeoDaTest/Axioms.lean  axiom audit, consumed by scripts/verify.sh
 scripts/verify.sh      build + no-sorry + axiom audit
@@ -30,11 +31,11 @@ README.md              the user-facing write-up; keep it in step with the code
 ```
 
 It runs `lake build`, greps the sources for `sorry`/`admit`, and checks that all
-56 main theorems in `GeoDaTest/Axioms.lean` depend only on
+63 main theorems in `GeoDaTest/Axioms.lean` depend only on
 `[propext, Classical.choice, Quot.sound]`. Expected tail:
 
 ```
-     ok: all 56 theorems depend only on [propext, Classical.choice, Quot.sound]
+     ok: all 63 theorems depend only on [propext, Classical.choice, Quot.sound]
 VERIFICATION SUCCEEDED
 ```
 
@@ -139,6 +140,19 @@ that module and its transitive imports — see the gotchas below.
   defines them in a `section` *outside* `namespace Matrix` (that file does
   `open Matrix` rather than nesting). The `⬝ᵥ` notation is root-level too. There
   is also no `Matrix.rowSum`, so `GeoDa.rowSum` is free.
+* **The `ℓ∞` norm on `Fin n → ℝ` and `norm_smul` are the only `Analysis` imports
+  the project needs**, and their module paths are not where you would guess:
+  `norm_le_pi_norm` and `pi_norm_le_iff_of_nonempty` live in
+  `Mathlib.Analysis.Normed.Group.Constructions` — there is **no**
+  `Mathlib.Analysis.Normed.Group.Pi` — and `norm_smul` needs
+  `Mathlib.Analysis.Normed.Module.Basic`. `Mathlib.Analysis.Matrix.Normed`
+  (`Matrix.linfty_opNorm_mulVec`, and a scoped `NormedRing` instance under
+  `open scoped Matrix.Norms.Operator`) also works but is heavier; the vector route
+  in `GeoDa/Multiplier.lean` is deliberately elementary.
+* **`haveI` on a proposition trips `linter.style.haveILetI`.** To use an
+  `IsEmpty`/`Nonempty` hypothesis as an instance, either restructure so you do not
+  need one (e.g. build the zero vector with `funext fun i => (h.false i).elim`), or
+  accept the warning.
 * **A file that imports `GeoDa.ReducedForm` also gains a root-level `normalize`,**
   so a bare `normalize` in `GeoDaTest/Smoke.lean` becomes ambiguous with
   `GeoDa.normalize` once both branches are present. Write `GeoDa.normalize`
@@ -191,11 +205,12 @@ What is left, roughly in order of value:
 1. **Reduced forms under `det ≠ 0`.** The hypothesis today is `IsUnit (1 - ρ • W)`;
    connect it to `Matrix.isUnit_iff_isUnit_det` so the statements read in terms of
    the determinant, which is what an implementation actually checks.
-2. **Invertibility of `1 - ρW` for `|ρ| < 1`** (Neumann series / Gershgorin
-   radius). The *row-sum* half is now in place in `GeoDa/SpatialWeights.lean`:
-   `mulVec_one_apply`, `rowStochastic_iff_mulVec_one` give `W *ᵥ 1 = 1` for
-   row-stochastic `W`, and `RowSubstochastic` is the hypothesis the operator-norm
-   bound wants.
+2. **Invertibility of `1 - ρW` for `|ρ| < 1`.** — **done**: see
+   `GeoDa/Multiplier.lean`. For `Nonneg` + `RowSubstochastic` `W` it proves the
+   `ℓ∞` contraction `‖W *ᵥ v‖ ≤ ‖v‖`, injectivity of `1 - ρW` for `|ρ| < 1`, and
+   hence `IsUnit (1 - ρ • W)`; `sarMat_iff_reducedForm_of_rowSubstochastic` and
+   `semMat_iff_reducedForm_of_rowSubstochastic` are the bridges. Both hypotheses
+   are needed, with counterexamples in the tests, and islands are allowed.
 3. **A GNS-level reduced form.** Eliminate `u` and then `y` in GNS itself, under
    invertibility of both `1 - ρW` and `1 - λW`. — **done**: see
    `GeoDa/ReducedForm.lean`. `gnsDes_iff_reducedForm` and its explicit-inverse
